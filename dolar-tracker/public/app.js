@@ -334,7 +334,10 @@ document.getElementById('btnActualizar').addEventListener('click', async () => {
   btn.classList.add('loading');
   btn.textContent = '⟳ Actualizando...';
   try {
-    await fetch(`${BASE}/api/actualizar`, { method: 'POST' });
+    await fetch(`${BASE}/api/actualizar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-update-token': window.UPDATE_TOKEN || '' }
+    });
     await cargarDatos();
     await cargarSenales();
   } catch (e) { console.error(e); }

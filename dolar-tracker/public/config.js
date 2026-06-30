@@ -1,4 +1,6 @@
-// Cambia esta URL por la de tu backend en Render una vez que lo despliegues.
-// Ejemplo: window.API_BASE = 'https://dolar-tracker.onrender.com';
-// Si el frontend y el backend están en el mismo dominio, déjalo vacío.
+// URL del backend (vacío = mismo dominio)
 window.API_BASE = '';
+
+// Token para el botón "Actualizar" — debe coincidir con UPDATE_TOKEN en el servidor
+// Déjalo vacío si no configuraste UPDATE_TOKEN (el endpoint quedará abierto)
+window.UPDATE_TOKEN = '';

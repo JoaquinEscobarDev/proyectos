@@ -1,5 +1,7 @@
 require('dotenv').config();
 const express = require('express');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const cron = require('node-cron');
 const path = require('path');
 const fs = require('fs');
@@ -47,6 +49,20 @@ function actualizarPrecioApertura(precio) {
   }
 }
 
+// 1. Headers de seguridad (oculta X-Powered-By, añade CSP, HSTS, etc.)
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc:  ["'self'", "https://cdn.jsdelivr.net"],
+      styleSrc:   ["'self'", "'unsafe-inline'"],
+      connectSrc: ["'self'", "https://api.exchangerate-api.com"],
+      imgSrc:     ["'self'", "data:"],
+    }
+  }
+}));
+
+// 2. CORS restringido al dominio del frontend
 app.use((req, res, next) => {
   const allowed = process.env.FRONTEND_URL || '*';
   res.setHeader('Access-Control-Allow-Origin', allowed);
@@ -56,9 +72,26 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json());
+// 3. Rate limiting: máx 60 requests/15 min por IP en toda la API
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiadas solicitudes. Intenta en 15 minutos.' }
+});
+
+// Rate limiting más estricto para el endpoint de actualización manual
+const actualizarLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: { error: 'Límite de actualizaciones manuales alcanzado. Espera 1 minuto.' }
+});
+
+app.use(express.json({ limit: '10kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/api', apiRouter);
+app.use('/api', apiLimiter, apiRouter);
+app.use('/api/actualizar', actualizarLimiter);
 
 async function cicloActualizacion() {
   try {

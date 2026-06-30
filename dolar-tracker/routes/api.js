@@ -11,8 +11,9 @@ function leerSenales() {
   try { return JSON.parse(fs.readFileSync(SENALES_PATH, 'utf-8')); } catch { return []; }
 }
 
-// Clientes SSE conectados
+// Clientes SSE conectados (máx 50 simultáneos)
 const sseClients = new Set();
+const SSE_MAX = 50;
 
 function broadcast(data) {
   const msg = `data: ${JSON.stringify(data)}\n\n`;
@@ -24,20 +25,22 @@ function broadcast(data) {
 // Exponer broadcast para que server.js lo use
 router.broadcast = broadcast;
 
-// SSE — el cliente se suscribe aquí y recibe actualizaciones en tiempo real
+// SSE — límite de 50 clientes simultáneos para prevenir DoS
 router.get('/stream', (req, res) => {
+  if (sseClients.size >= SSE_MAX) {
+    return res.status(503).json({ error: 'Servidor ocupado. Intenta en unos momentos.' });
+  }
+
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
-  // Enviar datos actuales al conectarse
   const historial = leerHistorial();
   const diario = historialPorDia(historial);
   const analisis = analizar(diario);
   if (analisis) res.write(`data: ${JSON.stringify({ valorActual: analisis.precio, historial: diario, analisis })}\n\n`);
 
-  // Heartbeat cada 30s para mantener la conexión viva
   const heartbeat = setInterval(() => { try { res.write(': ping\n\n'); } catch { clearInterval(heartbeat); } }, 30000);
 
   sseClients.add(res);
@@ -61,7 +64,15 @@ router.get('/dolar', async (req, res) => {
   }
 });
 
-router.post('/actualizar', async (req, res) => {
+// Token secreto requerido para forzar actualización manual
+router.post('/actualizar', (req, res, next) => {
+  const token = req.headers['x-update-token'] || req.body?.token;
+  const secret = process.env.UPDATE_TOKEN;
+  if (secret && token !== secret) {
+    return res.status(401).json({ error: 'No autorizado.' });
+  }
+  next();
+}, async (req, res) => {
   try {
     const { historial } = await actualizarHistorial();
     const diario = historialPorDia(historial);
