@@ -31,13 +31,19 @@ async function evaluarAlertas(analisis) {
   const { precio, rsi, senal, emoji, soporte, resistencia } = analisis;
   const mensajes = [];
 
-  if (config.umbral > 0 && precio > config.umbral) {
-    mensajes.push(
-      `⚠️ USD/CLP superó umbral: $${precio.toFixed(0)} (umbral: $${config.umbral})`
-    );
+  if (config.umbral > 0) {
+    const ultimoPrecio = config.ultimoPrecio || 0;
+    const cruzoArriba = precio > config.umbral && ultimoPrecio <= config.umbral;
+    const cruzoAbajo  = precio < config.umbral && ultimoPrecio >= config.umbral;
+    if (cruzoArriba) {
+      mensajes.push(`⚠️ USD/CLP superó el umbral: $${precio.toFixed(0)} > $${config.umbral}`);
+    } else if (cruzoAbajo) {
+      mensajes.push(`✅ USD/CLP bajó del umbral: $${precio.toFixed(0)} < $${config.umbral}`);
+    }
   }
 
-  if (config.ultimaSenal && config.ultimaSenal !== senal) {
+  // Envía siempre que la señal cambie, o la primera vez que se registra
+  if (config.ultimaSenal !== senal) {
     mensajes.push(
       `📊 USD/CLP: $${precio.toFixed(2)} | Señal: ${emoji} ${senal} | RSI: ${rsi !== null ? rsi.toFixed(1) : 'N/A'} | ${analisis.razon}`
     );
@@ -53,6 +59,7 @@ async function evaluarAlertas(analisis) {
   }
 
   config.ultimaSenal = senal;
+  config.ultimoPrecio = precio;
   guardarConfig(config);
 }
 
