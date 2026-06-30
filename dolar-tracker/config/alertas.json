@@ -1,6 +1,10 @@
 {
   "numero": "",
   "apiKey": "",
-  "umbral": 0,
-  "ultimaSenal": ""
+  "umbralAlto": 0,
+  "umbralBajo": 0,
+  "umbralCambio": 3,
+  "ultimaSenal": "",
+  "ultimoPrecio": 0,
+  "precioApertura": 0
 }

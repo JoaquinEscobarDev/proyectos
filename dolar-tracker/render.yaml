@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: dolar-tracker
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: EXCHANGE_API_KEY
+        sync: false        # Lo ingresas manualmente en el dashboard de Render
+      - key: FRONTEND_URL
+        sync: false        # URL de tu Hostinger, ej: https://tudominio.cl

@@ -6,8 +6,7 @@ const HISTORIAL_PATH = path.join(__dirname, '../data/historial.json');
 
 function leerHistorial() {
   try {
-    const raw = fs.readFileSync(HISTORIAL_PATH, 'utf-8');
-    return JSON.parse(raw);
+    return JSON.parse(fs.readFileSync(HISTORIAL_PATH, 'utf-8'));
   } catch {
     return [];
   }
@@ -17,34 +16,46 @@ function guardarHistorial(historial) {
   fs.writeFileSync(HISTORIAL_PATH, JSON.stringify(historial, null, 2));
 }
 
-async function fetchDolarHoy() {
-  const res = await fetch('https://mindicador.cl/api/dolar');
-  if (!res.ok) throw new Error(`Mindicador.cl respondió ${res.status}`);
+async function fetchDolarActual() {
+  const apiKey = process.env.EXCHANGE_API_KEY;
+  if (!apiKey) throw new Error('Falta la variable de entorno EXCHANGE_API_KEY');
+
+  const res = await fetch(`https://v6.exchangerate-api.com/v6/${apiKey}/pair/USD/CLP`);
+  if (!res.ok) throw new Error(`ExchangeRate-API respondió ${res.status}`);
   const json = await res.json();
-  const serie = json.serie;
-  if (!serie || serie.length === 0) throw new Error('Serie vacía');
+  if (json.result !== 'success') throw new Error(`ExchangeRate-API: ${json['error-type']}`);
 
-  const hoy = serie[0];
-  return { fecha: hoy.fecha.split('T')[0], valor: hoy.valor };
-}
-
-async function fetchHistorial30() {
-  const res = await fetch('https://mindicador.cl/api/dolar');
-  if (!res.ok) throw new Error(`Mindicador.cl respondió ${res.status}`);
-  const json = await res.json();
-  const serie = json.serie || [];
-
-  return serie
-    .slice(0, 30)
-    .map(d => ({ fecha: d.fecha.split('T')[0], valor: d.valor }))
-    .reverse();
+  const valor = parseFloat(json.conversion_rate.toFixed(2));
+  const fecha = new Date().toISOString();
+  return { fecha, valor };
 }
 
 async function actualizarHistorial() {
-  const datos = await fetchHistorial30();
-  guardarHistorial(datos);
-  console.log(`[${new Date().toISOString()}] Historial actualizado. ${datos.length} registros.`);
-  return datos;
+  const nuevo = await fetchDolarActual();
+
+  const historial = leerHistorial();
+  historial.push(nuevo);
+
+  // Conservar solo los últimos 30 días en puntos (máx 1000 entradas ~ 3 semanas de polling cada 30 min)
+  const limite = 60 * 24 * 2; // 2 días de granularidad cada 30 min = 96 entradas; para 30 días de vista diaria conservamos más
+  const recortado = historial.slice(-Math.max(limite, 30));
+  guardarHistorial(recortado);
+
+  console.log(`[${nuevo.fecha}] USD/CLP actualizado: $${nuevo.valor}`);
+  return { nuevo, historial: recortado };
 }
 
-module.exports = { actualizarHistorial, leerHistorial };
+// Para el gráfico: agrupar historial por día (último valor del día)
+function historialPorDia(historial) {
+  const porDia = {};
+  for (const entry of historial) {
+    const dia = entry.fecha.slice(0, 10);
+    porDia[dia] = entry.valor;
+  }
+  return Object.entries(porDia)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-30)
+    .map(([fecha, valor]) => ({ fecha, valor }));
+}
+
+module.exports = { actualizarHistorial, leerHistorial, historialPorDia };

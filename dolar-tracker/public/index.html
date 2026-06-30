@@ -6,6 +6,7 @@
   <title>USD/CLP Tracker</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="config.js"></script>
 </head>
 <body>
   <header>
@@ -101,11 +102,23 @@
         </label>
         <label>
           API Key CallMeBot
-          <input type="text" id="inputApiKey" placeholder="Tu API Key" />
+          <input type="password" id="inputApiKey" placeholder="Tu API Key" />
         </label>
+        <div class="alertas-sep">Umbrales de precio (0 = desactivado)</div>
+        <div class="alertas-doble">
+          <label>
+            Alerta si sube de
+            <input type="number" id="inputUmbralAlto" placeholder="Ej: 950" step="1" min="0" />
+          </label>
+          <label>
+            Alerta si baja de
+            <input type="number" id="inputUmbralBajo" placeholder="Ej: 890" step="1" min="0" />
+          </label>
+        </div>
         <label>
-          Umbral de precio (0 = desactivado)
-          <input type="number" id="inputUmbral" placeholder="Ej: 980" step="1" min="0" />
+          Alerta por cambio mayor a (CLP)
+          <input type="number" id="inputUmbralCambio" placeholder="Ej: 3" step="0.5" min="0" value="3" />
+          <span class="input-hint">Se alerta cuando el precio varía más de este monto entre actualizaciones</span>
         </label>
         <button type="submit" class="btn-guardar">Guardar configuración</button>
         <div id="alertaMsg" class="alerta-msg"></div>

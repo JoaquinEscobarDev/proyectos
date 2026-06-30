@@ -1,3 +1,5 @@
+const BASE = window.API_BASE || '';
+
 let graficoInstance = null;
 
 function fmt(n) {
@@ -25,12 +27,11 @@ function setVarItem(id, valor) {
   el.className = 'var-valor ' + (valor >= 0 ? 'positivo' : 'negativo');
 }
 
-function renderGrafico(historial, analisis) {
+function renderGrafico(historial) {
   const ctx = document.getElementById('grafico').getContext('2d');
   const labels = historial.map(d => d.fecha.slice(5));
   const precios = historial.map(d => d.valor);
 
-  // Construir series SMA con padding al inicio
   function buildSMA(valores, periodo) {
     return valores.map((_, i) => {
       if (i < periodo - 1) return null;
@@ -38,9 +39,6 @@ function renderGrafico(historial, analisis) {
       return slice.reduce((a, b) => a + b, 0) / periodo;
     });
   }
-
-  const sma7Series = buildSMA(precios, 7);
-  const sma30Series = buildSMA(precios, 30);
 
   if (graficoInstance) graficoInstance.destroy();
 
@@ -61,7 +59,7 @@ function renderGrafico(historial, analisis) {
         },
         {
           label: 'SMA 7',
-          data: sma7Series,
+          data: buildSMA(precios, 7),
           borderColor: '#00e676',
           borderWidth: 1.5,
           pointRadius: 0,
@@ -71,7 +69,7 @@ function renderGrafico(historial, analisis) {
         },
         {
           label: 'SMA 30',
-          data: sma30Series,
+          data: buildSMA(precios, 30),
           borderColor: '#ff6d00',
           borderWidth: 1.5,
           pointRadius: 0,
@@ -87,11 +85,7 @@ function renderGrafico(historial, analisis) {
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: {
-          labels: {
-            color: '#6b7280',
-            font: { family: 'Courier New', size: 11 },
-            boxWidth: 16,
-          }
+          labels: { color: '#6b7280', font: { family: 'Courier New', size: 11 }, boxWidth: 16 }
         },
         tooltip: {
           backgroundColor: '#1e2230',
@@ -100,10 +94,9 @@ function renderGrafico(historial, analisis) {
           titleColor: '#00e5ff',
           bodyColor: '#e8eaf0',
           callbacks: {
-            label: ctx => {
-              const v = ctx.raw;
-              return v !== null ? ` $${Number(v).toLocaleString('es-CL', { minimumFractionDigits: 2 })}` : '';
-            }
+            label: ctx => ctx.raw !== null
+              ? ` $${Number(ctx.raw).toLocaleString('es-CL', { minimumFractionDigits: 2 })}`
+              : ''
           }
         }
       },
@@ -128,20 +121,18 @@ function renderGrafico(historial, analisis) {
 function renderDatos(data) {
   const { valorActual, historial, analisis } = data;
 
-  // Precio
   document.getElementById('precioActual').textContent = fmt(valorActual);
   setVariacion(document.getElementById('variacionAyer'), analisis.variacionAyer);
+
   const fechaHoy = historial.length ? historial[historial.length - 1].fecha : '—';
   document.getElementById('ultimaFecha').textContent = `Actualizado: ${fechaHoy}`;
 
-  // Señal
   document.getElementById('senalEmoji').textContent = analisis.emoji || '🟡';
   const senalEl = document.getElementById('senalTexto');
   senalEl.textContent = analisis.senal;
   senalEl.className = 'senal-texto ' + analisis.senal;
   document.getElementById('senalRazon').textContent = analisis.razon;
 
-  // Indicadores
   document.getElementById('sma7').textContent = fmt(analisis.sma7);
   document.getElementById('sma30').textContent = fmt(analisis.sma30);
 
@@ -161,31 +152,26 @@ function renderDatos(data) {
     momEl.textContent = '—';
   }
 
-  // Tendencia y niveles
   const tendEl = document.getElementById('tendencia');
   tendEl.textContent = analisis.tendencia;
   tendEl.className = 'nivel-valor tendencia-badge ' + analisis.tendencia;
 
   document.getElementById('soporte').textContent = fmt(analisis.soporte);
   document.getElementById('resistencia').textContent = fmt(analisis.resistencia);
-
   setVarItem('var7d', analisis.variacion7d);
   setVarItem('var30d', analisis.variacion30d);
 
-  // Gráfico
-  renderGrafico(historial, analisis);
+  renderGrafico(historial);
 }
 
 async function cargarDatos() {
   const btn = document.getElementById('btnActualizar');
   btn.classList.add('loading');
   btn.textContent = '⟳ Cargando...';
-
   try {
-    const res = await fetch('/api/dolar');
+    const res = await fetch(`${BASE}/api/dolar`);
     if (!res.ok) throw new Error(`Error ${res.status}`);
-    const data = await res.json();
-    renderDatos(data);
+    renderDatos(await res.json());
   } catch (e) {
     console.error('Error cargando datos:', e);
   } finally {
@@ -196,10 +182,12 @@ async function cargarDatos() {
 
 async function cargarConfigAlertas() {
   try {
-    const res = await fetch('/api/alertas');
+    const res = await fetch(`${BASE}/api/alertas`);
     const cfg = await res.json();
-    if (cfg.numero) document.getElementById('inputNumero').value = cfg.numero;
-    if (cfg.umbral) document.getElementById('inputUmbral').value = cfg.umbral;
+    if (cfg.numero)       document.getElementById('inputNumero').value       = cfg.numero;
+    if (cfg.umbralAlto)   document.getElementById('inputUmbralAlto').value   = cfg.umbralAlto;
+    if (cfg.umbralBajo)   document.getElementById('inputUmbralBajo').value   = cfg.umbralBajo;
+    if (cfg.umbralCambio) document.getElementById('inputUmbralCambio').value = cfg.umbralCambio;
   } catch {}
 }
 
@@ -208,7 +196,7 @@ document.getElementById('btnActualizar').addEventListener('click', async () => {
   btn.classList.add('loading');
   btn.textContent = '⟳ Actualizando...';
   try {
-    await fetch('/api/actualizar', { method: 'POST' });
+    await fetch(`${BASE}/api/actualizar`, { method: 'POST' });
     await cargarDatos();
   } catch (e) {
     console.error(e);
@@ -221,12 +209,14 @@ document.getElementById('formAlertas').addEventListener('submit', async (e) => {
   e.preventDefault();
   const msg = document.getElementById('alertaMsg');
   const body = {
-    numero: document.getElementById('inputNumero').value,
-    apiKey: document.getElementById('inputApiKey').value,
-    umbral: document.getElementById('inputUmbral').value,
+    numero:       document.getElementById('inputNumero').value,
+    apiKey:       document.getElementById('inputApiKey').value,
+    umbralAlto:   document.getElementById('inputUmbralAlto').value,
+    umbralBajo:   document.getElementById('inputUmbralBajo').value,
+    umbralCambio: document.getElementById('inputUmbralCambio').value,
   };
   try {
-    const res = await fetch('/api/alertas', {
+    const res = await fetch(`${BASE}/api/alertas`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -234,9 +224,7 @@ document.getElementById('formAlertas').addEventListener('submit', async (e) => {
     if (res.ok) {
       msg.textContent = '✓ Configuración guardada';
       msg.className = 'alerta-msg ok';
-    } else {
-      throw new Error('Error al guardar');
-    }
+    } else throw new Error();
   } catch {
     msg.textContent = '✗ Error al guardar';
     msg.className = 'alerta-msg err';
