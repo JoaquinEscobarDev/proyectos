@@ -2,12 +2,50 @@ require('dotenv').config();
 const express = require('express');
 const cron = require('node-cron');
 const path = require('path');
+const fs = require('fs');
 
-const { actualizarHistorial, leerHistorial } = require('./services/fetchDolar');
+const { actualizarHistorial, leerHistorial, historialPorDia } = require('./services/fetchDolar');
+const { analizar } = require('./services/analisis');
 const apiRouter = require('./routes/api');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const SENALES_PATH  = path.join(__dirname, 'data/senales.json');
+const ESTADO_PATH   = path.join(__dirname, 'data/estado.json');
+
+function leerSenales() {
+  try { return JSON.parse(fs.readFileSync(SENALES_PATH, 'utf-8')); } catch { return []; }
+}
+function guardarSenales(s) { fs.writeFileSync(SENALES_PATH, JSON.stringify(s, null, 2)); }
+function leerEstado() {
+  try { return JSON.parse(fs.readFileSync(ESTADO_PATH, 'utf-8')); } catch { return { precioApertura: 0, fechaApertura: '' }; }
+}
+function guardarEstado(e) { fs.writeFileSync(ESTADO_PATH, JSON.stringify(e, null, 2)); }
+
+function registrarSenal(analisis) {
+  const senales = leerSenales();
+  const ultima = senales[senales.length - 1];
+  if (ultima && ultima.senal === analisis.senal) return; // no duplicar si no cambió
+  senales.push({
+    fecha:     new Date().toISOString(),
+    senal:     analisis.senal,
+    emoji:     analisis.emoji,
+    precio:    analisis.precio,
+    rsi:       analisis.rsi,
+    score:     analisis.score,
+    tendencia: analisis.tendencia,
+  });
+  guardarSenales(senales.slice(-50)); // conservar últimas 50
+}
+
+function actualizarPrecioApertura(precio) {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const estado = leerEstado();
+  if (estado.fechaApertura !== hoy) {
+    guardarEstado({ precioApertura: precio, fechaApertura: hoy });
+  }
+}
 
 app.use((req, res, next) => {
   const allowed = process.env.FRONTEND_URL || '*';
@@ -22,25 +60,35 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api', apiRouter);
 
-// Actualizar precio cada 30 min, Lun-Vie 9:00-18:00 hora Chile
-cron.schedule('*/30 9-18 * * 1-5', async () => {
-  console.log('[Cron] Actualizando precio...');
+async function cicloActualizacion() {
   try {
-    await actualizarHistorial();
+    const { historial } = await actualizarHistorial();
+    const diario = historialPorDia(historial);
+    const analisis = analizar(diario);
+    if (!analisis) return;
+
+    actualizarPrecioApertura(analisis.precio);
+    registrarSenal(analisis);
+
+    // Inyectar precio de apertura en el objeto antes de broadcast
+    const estado = leerEstado();
+    analisis.precioApertura = estado.precioApertura || analisis.precio;
+
+    apiRouter.broadcast({ valorActual: analisis.precio, historial: diario, analisis });
+    console.log(`[${new Date().toISOString()}] Broadcast: $${analisis.precio} | ${analisis.senal}`);
   } catch (e) {
-    console.error('[Cron] Error:', e.message);
+    console.error('[Ciclo] Error:', e.message);
   }
-}, { timezone: 'America/Santiago' });
+}
+
+// Cada 30 min, Lun-Vie 9:00-18:00 hora Chile
+cron.schedule('*/30 9-18 * * 1-5', cicloActualizacion, { timezone: 'America/Santiago' });
 
 app.listen(PORT, async () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
   const historial = leerHistorial();
   if (historial.length === 0) {
     console.log('[Init] Cargando precio inicial...');
-    try {
-      await actualizarHistorial();
-    } catch (e) {
-      console.error('[Init] Error:', e.message);
-    }
+    try { await cicloActualizacion(); } catch (e) { console.error('[Init]', e.message); }
   }
 });

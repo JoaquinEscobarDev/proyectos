@@ -1,17 +1,31 @@
+/* ===== VARIABLES ===== */
 :root {
-  --bg: #0d0f14;
-  --bg2: #151820;
-  --bg3: #1e2230;
-  --border: #2a2f42;
-  --accent: #00e5ff;
-  --accent2: #7c3aed;
-  --green: #00e676;
-  --red: #ff1744;
-  --yellow: #ffd600;
-  --text: #e8eaf0;
+  --bg:       #0d0f14;
+  --bg2:      #151820;
+  --bg3:      #1e2230;
+  --border:   #2a2f42;
+  --accent:   #00e5ff;
+  --accent2:  #7c3aed;
+  --green:    #00e676;
+  --red:      #ff1744;
+  --yellow:   #ffd600;
+  --text:     #e8eaf0;
   --text-muted: #6b7280;
-  --radius: 12px;
-  --font: 'Courier New', Courier, monospace;
+  --radius:   12px;
+  --font:     'Courier New', Courier, monospace;
+  --shadow:   0 2px 12px rgba(0,0,0,0.4);
+}
+
+[data-theme="light"] {
+  --bg:       #f0f2f7;
+  --bg2:      #ffffff;
+  --bg3:      #e8eaf0;
+  --border:   #d1d5db;
+  --accent:   #0077b6;
+  --accent2:  #7c3aed;
+  --text:     #111827;
+  --text-muted: #6b7280;
+  --shadow:   0 2px 12px rgba(0,0,0,0.1);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,341 +37,299 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  transition: background 0.3s, color 0.3s;
 }
 
-/* HEADER */
+/* ===== HEADER ===== */
 header {
   background: var(--bg2);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: var(--shadow);
 }
 .header-inner {
-  max-width: 700px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 14px 16px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
 }
 .logo {
   font-size: 1rem;
   font-weight: 700;
   color: var(--accent);
   letter-spacing: 2px;
+  white-space: nowrap;
 }
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.countdown {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+.btn-icon {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px 8px;
+  transition: background 0.2s;
+}
+.btn-icon:hover { background: var(--bg3); }
 .btn-actualizar {
   background: transparent;
   border: 1px solid var(--accent);
   color: var(--accent);
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 6px;
   cursor: pointer;
   font-family: var(--font);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   transition: background 0.2s;
+  white-space: nowrap;
 }
 .btn-actualizar:hover { background: rgba(0,229,255,0.08); }
 .btn-actualizar.loading { opacity: 0.5; pointer-events: none; }
 
-/* MAIN */
+/* ===== MAIN ===== */
 main {
-  max-width: 700px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 14px 14px 24px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   flex: 1;
 }
 
-/* CARDS */
+/* ===== CARDS ===== */
 .card {
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  transition: background 0.3s, border-color 0.3s;
 }
 
-/* PRECIO */
-.card-precio {
-  text-align: center;
-  background: linear-gradient(135deg, var(--bg2) 0%, #13172b 100%);
-}
+/* ===== PRECIO ===== */
+.card-precio { text-align: center; }
 .precio-label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .precio-valor {
-  font-size: 3rem;
+  font-size: 2.8rem;
   font-weight: 700;
   color: var(--accent);
   line-height: 1;
   margin-bottom: 8px;
   letter-spacing: -1px;
 }
-.variacion {
-  font-size: 1.1rem;
-  font-weight: 600;
+.precio-meta {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
   margin-bottom: 4px;
 }
+.variacion { font-size: 0.95rem; font-weight: 600; }
 .variacion.positivo { color: var(--green); }
 .variacion.negativo { color: var(--red); }
-.ultima-fecha {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-}
+.variacion-apertura { font-size: 0.8rem; color: var(--text-muted); }
+.ultima-fecha { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
 
-/* SEÑAL */
+/* ===== SEÑAL ===== */
 .card-senal {
   text-align: center;
   border-left: 3px solid var(--accent2);
 }
 .senal-titulo {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: var(--text-muted);
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
-.senal-emoji { font-size: 2.5rem; margin-bottom: 4px; }
-.senal-texto {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 3px;
-  margin-bottom: 10px;
-}
+.senal-emoji   { font-size: 2.2rem; margin-bottom: 4px; }
+.senal-texto   { font-size: 1.4rem; font-weight: 700; letter-spacing: 3px; margin-bottom: 4px; }
 .senal-texto.COMPRAR { color: var(--green); }
 .senal-texto.VENDER  { color: var(--red); }
 .senal-texto.ESPERAR { color: var(--yellow); }
-.senal-razon {
-  font-size: 0.82rem;
+.senal-score {
+  font-size: 0.72rem;
   color: var(--text-muted);
-  line-height: 1.5;
-  max-width: 440px;
+  margin-bottom: 8px;
+}
+.senal-razon {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  max-width: 480px;
   margin: 0 auto;
 }
 
-/* INDICADORES */
+/* ===== INDICADORES GRID ===== */
 .indicadores-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 10px;
 }
-.card-indicador { text-align: center; padding: 16px; }
+.card-indicador { text-align: center; padding: 14px 10px; }
 .ind-label {
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   color: var(--text-muted);
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
-.ind-valor {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--text);
-}
-.ind-sub {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  margin-top: 3px;
-}
+.ind-valor { font-size: 1.25rem; font-weight: 700; color: var(--text); }
+.ind-sub   { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
 .ind-sub.sobrecomprado { color: var(--red); }
 .ind-sub.sobrevendido  { color: var(--green); }
 .ind-sub.neutral       { color: var(--yellow); }
 
-/* NIVELES */
-.card-niveles { padding: 18px 20px; }
-.niveles-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
-}
-.nivel-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 80px;
-}
-.nivel-label {
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-.nivel-valor {
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-.tendencia-badge { letter-spacing: 1px; }
-.tendencia-badge.ALCISTA { color: var(--green); }
-.tendencia-badge.BAJISTA { color: var(--red); }
-.tendencia-badge.LATERAL { color: var(--yellow); }
-.soporte  { color: var(--green); }
-.resistencia { color: var(--red); }
-
-.variaciones-row {
-  display: flex;
-  gap: 20px;
-  border-top: 1px solid var(--border);
-  padding-top: 12px;
-}
-.var-item { display: flex; flex-direction: column; gap: 3px; }
-.var-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; }
-.var-valor { font-size: 0.95rem; font-weight: 600; }
-.var-valor.positivo { color: var(--green); }
-.var-valor.negativo { color: var(--red); }
-
-/* BOLLINGER */
-.card-bollinger { padding: 18px 20px; }
+/* ===== BOLLINGER ===== */
+.card-bollinger { padding: 16px 18px; }
 .bollinger-titulo {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
-.bollinger-sub { font-size: 0.65rem; opacity: 0.6; }
+.bollinger-sub { font-size: 0.62rem; opacity: 0.6; }
 .bollinger-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 .bb-item { display: flex; flex-direction: column; gap: 3px; }
-.bb-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.bb-label { font-size: 0.64rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
 .bb-valor { font-size: 0.95rem; font-weight: 700; }
 .bb-posicion {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   border-top: 1px solid var(--border);
-  padding-top: 10px;
+  padding-top: 8px;
   line-height: 1.5;
 }
 
-/* GRÁFICO */
-.card-grafico { padding: 18px; }
+/* ===== NIVELES ===== */
+.card-niveles { padding: 16px 18px; }
+.niveles-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.nivel-item { display: flex; flex-direction: column; gap: 4px; }
+.nivel-label { font-size: 0.64rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+.nivel-valor { font-size: 0.9rem; font-weight: 700; }
+.tendencia-badge.ALCISTA { color: var(--green); }
+.tendencia-badge.BAJISTA { color: var(--red); }
+.tendencia-badge.LATERAL { color: var(--yellow); }
+.soporte     { color: var(--green); }
+.resistencia { color: var(--red); }
+.variaciones-row {
+  display: flex;
+  gap: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  flex-wrap: wrap;
+}
+.var-item { display: flex; flex-direction: column; gap: 3px; }
+.var-label { font-size: 0.64rem; color: var(--text-muted); text-transform: uppercase; }
+.var-valor { font-size: 0.9rem; font-weight: 600; }
+.var-valor.positivo { color: var(--green); }
+.var-valor.negativo { color: var(--red); }
+
+/* ===== GRÁFICOS ===== */
+.card-grafico { padding: 16px 18px; }
 .grafico-titulo {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
-.grafico-wrap {
-  position: relative;
-  height: 220px;
-}
+.grafico-sub { font-size: 0.6rem; opacity: 0.7; text-transform: none; letter-spacing: 0; }
+.grafico-wrap     { position: relative; height: 220px; }
+.grafico-wrap-sm  { position: relative; height: 130px; }
 
-/* ALERTAS */
-.card-alertas { border-left: 3px solid #ffd600; }
-.alertas-titulo {
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin-bottom: 6px;
-  color: var(--yellow);
-}
-.alertas-desc {
+/* ===== TABLAS ===== */
+.card-senales, .card-historial { padding: 16px 18px; }
+.senales-titulo {
   font-size: 0.78rem;
-  color: var(--text-muted);
-  margin-bottom: 16px;
-  line-height: 1.5;
-}
-.alertas-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.alertas-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-.alertas-form input {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 0.9rem;
-  padding: 9px 12px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.alertas-form input:focus { border-color: var(--accent); }
-.alertas-sep {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  border-top: 1px solid var(--border);
-  padding-top: 10px;
-}
-.alertas-doble {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.input-hint {
-  font-size: 0.67rem;
-  color: var(--text-muted);
-  margin-top: 3px;
-  text-transform: none;
-  letter-spacing: 0;
-  line-height: 1.4;
-}
-.btn-guardar {
-  background: var(--accent2);
-  border: none;
-  border-radius: 6px;
-  color: #fff;
-  cursor: pointer;
-  font-family: var(--font);
-  font-size: 0.9rem;
   font-weight: 700;
-  padding: 10px;
-  transition: opacity 0.2s;
+  margin-bottom: 12px;
+  color: var(--text);
 }
-.btn-guardar:hover { opacity: 0.85; }
-.alerta-msg {
-  font-size: 0.8rem;
-  min-height: 18px;
-  text-align: center;
+.tabla-wrap { overflow-x: auto; }
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
 }
-.alerta-msg.ok  { color: var(--green); }
-.alerta-msg.err { color: var(--red); }
+.tabla th {
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+.tabla td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  white-space: nowrap;
+}
+.tabla tr:last-child td { border-bottom: none; }
+.tabla tr:hover td { background: var(--bg3); }
+.tabla-empty { color: var(--text-muted); text-align: center; padding: 16px !important; }
+.badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.7rem;
+}
+.badge-comprar { background: rgba(0,230,118,0.15); color: var(--green); }
+.badge-vender  { background: rgba(255,23,68,0.15);  color: var(--red); }
+.badge-esperar { background: rgba(255,214,0,0.15);  color: var(--yellow); }
 
-/* FOOTER */
+/* ===== FOOTER ===== */
 footer {
   border-top: 1px solid var(--border);
-  padding: 14px 16px;
+  padding: 12px 16px;
   text-align: center;
 }
-footer p {
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  line-height: 1.6;
-}
+footer p { font-size: 0.66rem; color: var(--text-muted); line-height: 1.6; }
 footer a { color: var(--accent); text-decoration: none; }
 
-/* Spinner de carga */
-.spinner {
-  display: inline-block;
-  animation: spin 1s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
+/* ===== RESPONSIVE ===== */
 @media (min-width: 480px) {
-  .precio-valor { font-size: 3.5rem; }
-  .indicadores-grid { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .precio-valor { font-size: 3.4rem; }
+  .indicadores-grid { grid-template-columns: repeat(4, 1fr); }
+  .niveles-row { grid-template-columns: repeat(4, 1fr); }
 }

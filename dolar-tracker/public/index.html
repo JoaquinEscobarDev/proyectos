@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>USD/CLP Tracker</title>
+  <meta name="description" content="Monitor y análisis técnico del dólar en tiempo real" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0d0f14" />
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="config.js"></script>
@@ -11,17 +14,24 @@
 <body>
   <header>
     <div class="header-inner">
-      <span class="logo">📈 USD/CLP TRACKER</span>
-      <button id="btnActualizar" class="btn-actualizar">⟳ Actualizar</button>
+      <span class="logo">📈 USD/CLP</span>
+      <div class="header-right">
+        <div id="countdown" class="countdown" title="Próxima actualización">⟳ —</div>
+        <button id="btnTema" class="btn-icon" title="Cambiar tema">🌙</button>
+        <button id="btnActualizar" class="btn-actualizar">⟳ Actualizar</button>
+      </div>
     </div>
   </header>
 
   <main>
     <!-- Precio actual -->
     <section class="card card-precio">
-      <div class="precio-label">Dólar observado hoy</div>
+      <div class="precio-label">Dólar de mercado</div>
       <div id="precioActual" class="precio-valor">—</div>
-      <div id="variacionAyer" class="variacion">—</div>
+      <div class="precio-meta">
+        <span id="variacionAyer" class="variacion">—</span>
+        <span id="variacionApertura" class="variacion-apertura">—</span>
+      </div>
       <div id="ultimaFecha" class="ultima-fecha">—</div>
     </section>
 
@@ -29,11 +39,12 @@
     <section class="card card-senal">
       <div class="senal-titulo">Señal del día</div>
       <div id="senalEmoji" class="senal-emoji">🟡</div>
-      <div id="senalTexto" class="senal-texto">ESPERAR</div>
+      <div id="senalTexto" class="senal-texto ESPERAR">ESPERAR</div>
+      <div id="senalScore" class="senal-score">—</div>
       <div id="senalRazon" class="senal-razon">Cargando análisis...</div>
     </section>
 
-    <!-- Indicadores fila 1 -->
+    <!-- Medias móviles -->
     <section class="indicadores-grid">
       <div class="card card-indicador">
         <div class="ind-label">SMA 7</div>
@@ -53,7 +64,7 @@
       </div>
     </section>
 
-    <!-- Indicadores fila 2 -->
+    <!-- Osciladores -->
     <section class="indicadores-grid">
       <div class="card card-indicador">
         <div class="ind-label">RSI (14)</div>
@@ -61,9 +72,9 @@
         <div id="estadoRSI" class="ind-sub">—</div>
       </div>
       <div class="card card-indicador">
-        <div class="ind-label">Momentum</div>
-        <div id="momentum" class="ind-valor">—</div>
-        <div class="ind-sub">vs hace 10 días</div>
+        <div class="ind-label">Estocástico %K</div>
+        <div id="estoK" class="ind-valor">—</div>
+        <div id="estoEstado" class="ind-sub">—</div>
       </div>
       <div class="card card-indicador">
         <div class="ind-label">MACD</div>
@@ -71,9 +82,9 @@
         <div id="macdEstado" class="ind-sub">—</div>
       </div>
       <div class="card card-indicador">
-        <div class="ind-label">Histograma</div>
-        <div id="macdHist" class="ind-valor">—</div>
-        <div class="ind-sub">MACD − Señal</div>
+        <div class="ind-label">ATR (14)</div>
+        <div id="atr" class="ind-valor">—</div>
+        <div class="ind-sub">volatilidad</div>
       </div>
     </section>
 
@@ -101,7 +112,7 @@
       <div id="bbPosicion" class="bb-posicion">—</div>
     </section>
 
-    <!-- Tendencia y niveles -->
+    <!-- Niveles y tendencia -->
     <section class="card card-niveles">
       <div class="niveles-row">
         <div class="nivel-item">
@@ -116,8 +127,16 @@
           <span class="nivel-label">Resistencia 30d</span>
           <span id="resistencia" class="nivel-valor resistencia">—</span>
         </div>
+        <div class="nivel-item">
+          <span class="nivel-label">Momentum</span>
+          <span id="momentum" class="nivel-valor">—</span>
+        </div>
       </div>
       <div class="variaciones-row">
+        <div class="var-item">
+          <span class="var-label">vs ayer</span>
+          <span id="var1d" class="var-valor">—</span>
+        </div>
         <div class="var-item">
           <span class="var-label">7 días</span>
           <span id="var7d" class="var-valor">—</span>
@@ -129,19 +148,63 @@
       </div>
     </section>
 
-    <!-- Gráfico -->
+    <!-- Gráfico de precio -->
     <section class="card card-grafico">
-      <div class="grafico-titulo">Historial 30 días</div>
+      <div class="grafico-titulo">Precio + Bollinger + SMA</div>
       <div class="grafico-wrap">
         <canvas id="grafico"></canvas>
       </div>
     </section>
 
+    <!-- Gráfico RSI -->
+    <section class="card card-grafico">
+      <div class="grafico-titulo">RSI (14) <span class="grafico-sub">— sobrecomprado >70 | sobrevendido <30</span></div>
+      <div class="grafico-wrap grafico-wrap-sm">
+        <canvas id="graficoRSI"></canvas>
+      </div>
+    </section>
+
+    <!-- Historial de señales -->
+    <section class="card card-senales">
+      <div class="senales-titulo">📋 Historial de señales</div>
+      <div class="tabla-wrap">
+        <table id="tablaSenales" class="tabla">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Señal</th>
+              <th>Precio</th>
+              <th>RSI</th>
+              <th>Score</th>
+              <th>Tendencia</th>
+            </tr>
+          </thead>
+          <tbody id="tablaSenalesBody">
+            <tr><td colspan="6" class="tabla-empty">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Historial de precios -->
+    <section class="card card-historial">
+      <div class="senales-titulo">📊 Historial de precios (30 días)</div>
+      <div class="tabla-wrap">
+        <table class="tabla">
+          <thead>
+            <tr><th>Fecha</th><th>Precio</th><th>Variación</th></tr>
+          </thead>
+          <tbody id="tablaHistorialBody">
+            <tr><td colspan="3" class="tabla-empty">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 
   <footer>
-    <p>⚠️ Este análisis es orientativo y no constituye asesoría financiera. Los indicadores técnicos no garantizan resultados.</p>
-    <p>Datos: <a href="https://mindicador.cl" target="_blank" rel="noopener">mindicador.cl</a></p>
+    <p>⚠️ Este análisis es orientativo y no constituye asesoría financiera.</p>
+    <p>Datos: <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">ExchangeRate-API</a> · Actualización automática cada 30 min en horario de mercado</p>
   </footer>
 
   <script src="app.js"></script>
