@@ -9,6 +9,18 @@ services:
       - key: NODE_ENV
         value: production
       - key: EXCHANGE_API_KEY
-        sync: false        # Lo ingresas manualmente en el dashboard de Render
+        sync: false
+      - key: GREEN_INSTANCE_ID
+        sync: false
+      - key: GREEN_API_TOKEN
+        sync: false
+      - key: GREEN_GROUP_CHAT_ID
+        sync: false
+      - key: UMBRAL_ALTO
+        value: "0"
+      - key: UMBRAL_BAJO
+        value: "0"
+      - key: UMBRAL_CAMBIO
+        value: "3"
       - key: FRONTEND_URL
-        sync: false        # URL de tu Hostinger, ej: https://tudominio.cl
+        sync: false

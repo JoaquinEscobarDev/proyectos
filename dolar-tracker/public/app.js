@@ -180,17 +180,6 @@ async function cargarDatos() {
   }
 }
 
-async function cargarConfigAlertas() {
-  try {
-    const res = await fetch(`${BASE}/api/alertas`);
-    const cfg = await res.json();
-    if (cfg.numero)       document.getElementById('inputNumero').value       = cfg.numero;
-    if (cfg.umbralAlto)   document.getElementById('inputUmbralAlto').value   = cfg.umbralAlto;
-    if (cfg.umbralBajo)   document.getElementById('inputUmbralBajo').value   = cfg.umbralBajo;
-    if (cfg.umbralCambio) document.getElementById('inputUmbralCambio').value = cfg.umbralCambio;
-  } catch {}
-}
-
 document.getElementById('btnActualizar').addEventListener('click', async () => {
   const btn = document.getElementById('btnActualizar');
   btn.classList.add('loading');
@@ -205,32 +194,4 @@ document.getElementById('btnActualizar').addEventListener('click', async () => {
   }
 });
 
-document.getElementById('formAlertas').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const msg = document.getElementById('alertaMsg');
-  const body = {
-    numero:       document.getElementById('inputNumero').value,
-    apiKey:       document.getElementById('inputApiKey').value,
-    umbralAlto:   document.getElementById('inputUmbralAlto').value,
-    umbralBajo:   document.getElementById('inputUmbralBajo').value,
-    umbralCambio: document.getElementById('inputUmbralCambio').value,
-  };
-  try {
-    const res = await fetch(`${BASE}/api/alertas`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    if (res.ok) {
-      msg.textContent = '✓ Configuración guardada';
-      msg.className = 'alerta-msg ok';
-    } else throw new Error();
-  } catch {
-    msg.textContent = '✗ Error al guardar';
-    msg.className = 'alerta-msg err';
-  }
-  setTimeout(() => { msg.textContent = ''; }, 3000);
-});
-
 cargarDatos();
-cargarConfigAlertas();

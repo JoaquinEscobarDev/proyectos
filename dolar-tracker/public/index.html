@@ -91,39 +91,6 @@
       </div>
     </section>
 
-    <!-- Alertas WhatsApp -->
-    <section class="card card-alertas">
-      <div class="alertas-titulo">🔔 Alertas WhatsApp</div>
-      <div class="alertas-desc">Recibe alertas vía CallMeBot cuando cambie la señal o se supere el umbral.</div>
-      <form id="formAlertas" class="alertas-form">
-        <label>
-          Número WhatsApp
-          <input type="text" id="inputNumero" placeholder="+56912345678" />
-        </label>
-        <label>
-          API Key CallMeBot
-          <input type="password" id="inputApiKey" placeholder="Tu API Key" />
-        </label>
-        <div class="alertas-sep">Umbrales de precio (0 = desactivado)</div>
-        <div class="alertas-doble">
-          <label>
-            Alerta si sube de
-            <input type="number" id="inputUmbralAlto" placeholder="Ej: 950" step="1" min="0" />
-          </label>
-          <label>
-            Alerta si baja de
-            <input type="number" id="inputUmbralBajo" placeholder="Ej: 890" step="1" min="0" />
-          </label>
-        </div>
-        <label>
-          Alerta por cambio mayor a (CLP)
-          <input type="number" id="inputUmbralCambio" placeholder="Ej: 3" step="0.5" min="0" value="3" />
-          <span class="input-hint">Se alerta cuando el precio varía más de este monto entre actualizaciones</span>
-        </label>
-        <button type="submit" class="btn-guardar">Guardar configuración</button>
-        <div id="alertaMsg" class="alerta-msg"></div>
-      </form>
-    </section>
   </main>
 
   <footer>
