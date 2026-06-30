@@ -112,7 +112,6 @@ async function cicloActualizacion() {
 
     // Push si el precio cambió lo suficiente o la señal cambió
     const umbral = parseFloat(process.env.UMBRAL_CAMBIO) || 3;
-    const estado = leerEstado();
     const diff = Math.abs(analisis.precio - (estado.ultimoPrecio || analisis.precio));
     const senalCambio = estado.ultimaSenal && estado.ultimaSenal !== analisis.senal;
 

@@ -4,11 +4,14 @@ const path = require('path');
 
 const SUBS_PATH = path.join(__dirname, '../data/subscriptions.json');
 
-webpush.setVapidDetails(
-  'mailto:' + (process.env.VAPID_EMAIL || 'admin@proyectos.fun'),
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-);
+const vapidReady = process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY;
+if (vapidReady) {
+  webpush.setVapidDetails(
+    'mailto:' + (process.env.VAPID_EMAIL || 'admin@proyectos.fun'),
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+}
 
 function leerSubs() {
   try { return JSON.parse(fs.readFileSync(SUBS_PATH, 'utf-8')); } catch { return []; }
@@ -33,7 +36,7 @@ function eliminarSub(endpoint) {
 }
 
 async function enviarPush(payload) {
-  if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) return;
+  if (!vapidReady) return;
 
   const subs = leerSubs();
   if (subs.length === 0) return;
