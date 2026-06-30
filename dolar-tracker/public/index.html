@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USD/CLP Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <span class="logo">📈 USD/CLP TRACKER</span>
+      <button id="btnActualizar" class="btn-actualizar">⟳ Actualizar</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Precio actual -->
+    <section class="card card-precio">
+      <div class="precio-label">Dólar observado hoy</div>
+      <div id="precioActual" class="precio-valor">—</div>
+      <div id="variacionAyer" class="variacion">—</div>
+      <div id="ultimaFecha" class="ultima-fecha">—</div>
+    </section>
+
+    <!-- Señal del día -->
+    <section class="card card-senal">
+      <div class="senal-titulo">Señal del día</div>
+      <div id="senalEmoji" class="senal-emoji">🟡</div>
+      <div id="senalTexto" class="senal-texto">ESPERAR</div>
+      <div id="senalRazon" class="senal-razon">Cargando análisis...</div>
+    </section>
+
+    <!-- Indicadores -->
+    <section class="indicadores-grid">
+      <div class="card card-indicador">
+        <div class="ind-label">SMA 7</div>
+        <div id="sma7" class="ind-valor">—</div>
+      </div>
+      <div class="card card-indicador">
+        <div class="ind-label">SMA 30</div>
+        <div id="sma30" class="ind-valor">—</div>
+      </div>
+      <div class="card card-indicador">
+        <div class="ind-label">RSI (14)</div>
+        <div id="rsi" class="ind-valor">—</div>
+        <div id="estadoRSI" class="ind-sub">—</div>
+      </div>
+      <div class="card card-indicador">
+        <div class="ind-label">Momentum</div>
+        <div id="momentum" class="ind-valor">—</div>
+        <div class="ind-sub">vs hace 10 días</div>
+      </div>
+    </section>
+
+    <!-- Tendencia y niveles -->
+    <section class="card card-niveles">
+      <div class="niveles-row">
+        <div class="nivel-item">
+          <span class="nivel-label">Tendencia</span>
+          <span id="tendencia" class="nivel-valor tendencia-badge">—</span>
+        </div>
+        <div class="nivel-item">
+          <span class="nivel-label">Soporte 30d</span>
+          <span id="soporte" class="nivel-valor soporte">—</span>
+        </div>
+        <div class="nivel-item">
+          <span class="nivel-label">Resistencia 30d</span>
+          <span id="resistencia" class="nivel-valor resistencia">—</span>
+        </div>
+      </div>
+      <div class="variaciones-row">
+        <div class="var-item">
+          <span class="var-label">7 días</span>
+          <span id="var7d" class="var-valor">—</span>
+        </div>
+        <div class="var-item">
+          <span class="var-label">30 días</span>
+          <span id="var30d" class="var-valor">—</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gráfico -->
+    <section class="card card-grafico">
+      <div class="grafico-titulo">Historial 30 días</div>
+      <div class="grafico-wrap">
+        <canvas id="grafico"></canvas>
+      </div>
+    </section>
+
+    <!-- Alertas WhatsApp -->
+    <section class="card card-alertas">
+      <div class="alertas-titulo">🔔 Alertas WhatsApp</div>
+      <div class="alertas-desc">Recibe alertas vía CallMeBot cuando cambie la señal o se supere el umbral.</div>
+      <form id="formAlertas" class="alertas-form">
+        <label>
+          Número WhatsApp
+          <input type="text" id="inputNumero" placeholder="+56912345678" />
+        </label>
+        <label>
+          API Key CallMeBot
+          <input type="text" id="inputApiKey" placeholder="Tu API Key" />
+        </label>
+        <label>
+          Umbral de precio (0 = desactivado)
+          <input type="number" id="inputUmbral" placeholder="Ej: 980" step="1" min="0" />
+        </label>
+        <button type="submit" class="btn-guardar">Guardar configuración</button>
+        <div id="alertaMsg" class="alerta-msg"></div>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>⚠️ Este análisis es orientativo y no constituye asesoría financiera. Los indicadores técnicos no garantizan resultados.</p>
+    <p>Datos: <a href="https://mindicador.cl" target="_blank" rel="noopener">mindicador.cl</a></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
