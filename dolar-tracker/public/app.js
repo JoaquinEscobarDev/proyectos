@@ -344,9 +344,78 @@ document.getElementById('btnActualizar').addEventListener('click', async () => {
   finally { btn.classList.remove('loading'); btn.textContent = '⟳ Actualizar'; }
 });
 
-// ===== PWA =====
+// ===== PWA + NOTIFICACIONES PUSH =====
+const btnNotif = document.getElementById('btnNotif');
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function actualizarBtnNotif(sw) {
+  if (!('PushManager' in window)) { btnNotif.style.display = 'none'; return; }
+  const sub = await sw.pushManager.getSubscription();
+  btnNotif.textContent = sub ? '🔕' : '🔔';
+  btnNotif.title = sub ? 'Desactivar notificaciones' : 'Activar notificaciones';
+}
+
+async function toggleNotificaciones(sw) {
+  const existing = await sw.pushManager.getSubscription();
+
+  if (existing) {
+    await existing.unsubscribe();
+    btnNotif.textContent = '🔔';
+    btnNotif.title = 'Activar notificaciones';
+    return;
+  }
+
+  const permiso = await Notification.requestPermission();
+  if (permiso !== 'granted') { alert('Permiso denegado para notificaciones.'); return; }
+
+  try {
+    const res = await fetch(`${BASE}/api/push/vapid-key`);
+    const { publicKey } = await res.json();
+    if (!publicKey) { alert('El servidor no tiene notificaciones configuradas.'); return; }
+
+    const sub = await sw.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey)
+    });
+
+    await fetch(`${BASE}/api/push/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(sub)
+    });
+
+    btnNotif.textContent = '🔕';
+    btnNotif.title = 'Desactivar notificaciones';
+    alert('✅ Notificaciones activadas. Recibirás alertas cuando el dólar cambie.');
+  } catch (e) {
+    console.error('Error suscribiendo push:', e);
+    alert('Error al activar notificaciones.');
+  }
+}
+
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  navigator.serviceWorker.register('sw.js').then(async reg => {
+    // Esperar a que el SW esté activo
+    const sw = reg.active || await new Promise(r => {
+      reg.addEventListener('updatefound', () => {
+        reg.installing.addEventListener('statechange', e => {
+          if (e.target.state === 'activated') r(reg.active);
+        });
+      });
+      if (reg.active) r(reg.active);
+    });
+
+    await actualizarBtnNotif(reg);
+    btnNotif.addEventListener('click', () => toggleNotificaciones(reg));
+  }).catch(() => { btnNotif.style.display = 'none'; });
+} else {
+  btnNotif.style.display = 'none';
 }
 
 cargarDatos();

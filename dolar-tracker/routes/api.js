@@ -4,6 +4,7 @@ const path = require('path');
 const router = express.Router();
 const { actualizarHistorial, leerHistorial, historialPorDia } = require('../services/fetchDolar');
 const { analizar } = require('../services/analisis');
+const { agregarSub } = require('../services/push');
 
 const SENALES_PATH = path.join(__dirname, '../data/senales.json');
 
@@ -87,6 +88,19 @@ router.post('/actualizar', (req, res, next) => {
 
 router.get('/senales', (req, res) => {
   res.json(leerSenales());
+});
+
+// VAPID public key para que el frontend pueda suscribirse
+router.get('/push/vapid-key', (req, res) => {
+  res.json({ publicKey: process.env.VAPID_PUBLIC_KEY || null });
+});
+
+// Guardar suscripción push del navegador
+router.post('/push/subscribe', (req, res) => {
+  const sub = req.body;
+  if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Suscripción inválida' });
+  agregarSub(sub);
+  res.json({ ok: true });
 });
 
 module.exports = router;

@@ -1,4 +1,6 @@
 {
   "precioApertura": 0,
-  "fechaApertura": ""
+  "fechaApertura": "",
+  "ultimoPrecio": 0,
+  "ultimaSenal": ""
 }

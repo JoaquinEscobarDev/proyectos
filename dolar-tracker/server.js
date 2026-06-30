@@ -8,6 +8,7 @@ const fs = require('fs');
 
 const { actualizarHistorial, leerHistorial, historialPorDia } = require('./services/fetchDolar');
 const { analizar } = require('./services/analisis');
+const { enviarPush } = require('./services/push');
 const apiRouter = require('./routes/api');
 
 const app = express();
@@ -108,6 +109,24 @@ async function cicloActualizacion() {
     analisis.precioApertura = estado.precioApertura || analisis.precio;
 
     apiRouter.broadcast({ valorActual: analisis.precio, historial: diario, analisis });
+
+    // Push si el precio cambió lo suficiente o la señal cambió
+    const umbral = parseFloat(process.env.UMBRAL_CAMBIO) || 3;
+    const estado = leerEstado();
+    const diff = Math.abs(analisis.precio - (estado.ultimoPrecio || analisis.precio));
+    const senalCambio = estado.ultimaSenal && estado.ultimaSenal !== analisis.senal;
+
+    if (diff >= umbral || senalCambio) {
+      await enviarPush({
+        title: `USD/CLP ${analisis.emoji} ${analisis.senal}`,
+        body: `💵 $${analisis.precio.toFixed(2)} ${diff >= umbral ? `(${analisis.precio > (estado.ultimoPrecio||analisis.precio) ? '+' : ''}$${(analisis.precio-(estado.ultimoPrecio||analisis.precio)).toFixed(2)})` : ''} · RSI: ${analisis.rsi?.toFixed(1) ?? 'N/A'}`,
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        data: { url: '/' }
+      });
+    }
+
+    guardarEstado({ ...leerEstado(), ultimoPrecio: analisis.precio, ultimaSenal: analisis.senal });
     console.log(`[${new Date().toISOString()}] Broadcast: $${analisis.precio} | ${analisis.senal}`);
   } catch (e) {
     console.error('[Ciclo] Error:', e.message);
