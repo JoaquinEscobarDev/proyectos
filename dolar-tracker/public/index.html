@@ -33,7 +33,7 @@
       <div id="senalRazon" class="senal-razon">Cargando análisis...</div>
     </section>
 
-    <!-- Indicadores -->
+    <!-- Indicadores fila 1 -->
     <section class="indicadores-grid">
       <div class="card card-indicador">
         <div class="ind-label">SMA 7</div>
@@ -44,6 +44,18 @@
         <div id="sma30" class="ind-valor">—</div>
       </div>
       <div class="card card-indicador">
+        <div class="ind-label">EMA 12</div>
+        <div id="ema12" class="ind-valor">—</div>
+      </div>
+      <div class="card card-indicador">
+        <div class="ind-label">EMA 26</div>
+        <div id="ema26" class="ind-valor">—</div>
+      </div>
+    </section>
+
+    <!-- Indicadores fila 2 -->
+    <section class="indicadores-grid">
+      <div class="card card-indicador">
         <div class="ind-label">RSI (14)</div>
         <div id="rsi" class="ind-valor">—</div>
         <div id="estadoRSI" class="ind-sub">—</div>
@@ -53,6 +65,40 @@
         <div id="momentum" class="ind-valor">—</div>
         <div class="ind-sub">vs hace 10 días</div>
       </div>
+      <div class="card card-indicador">
+        <div class="ind-label">MACD</div>
+        <div id="macdVal" class="ind-valor">—</div>
+        <div id="macdEstado" class="ind-sub">—</div>
+      </div>
+      <div class="card card-indicador">
+        <div class="ind-label">Histograma</div>
+        <div id="macdHist" class="ind-valor">—</div>
+        <div class="ind-sub">MACD − Señal</div>
+      </div>
+    </section>
+
+    <!-- Bollinger Bands -->
+    <section class="card card-bollinger">
+      <div class="bollinger-titulo">Bandas de Bollinger <span class="bollinger-sub">(SMA20 ± 2σ)</span></div>
+      <div class="bollinger-grid">
+        <div class="bb-item">
+          <span class="bb-label">Banda Superior</span>
+          <span id="bbUpper" class="bb-valor resistencia">—</span>
+        </div>
+        <div class="bb-item">
+          <span class="bb-label">Media (SMA20)</span>
+          <span id="bbMiddle" class="bb-valor">—</span>
+        </div>
+        <div class="bb-item">
+          <span class="bb-label">Banda Inferior</span>
+          <span id="bbLower" class="bb-valor soporte">—</span>
+        </div>
+        <div class="bb-item">
+          <span class="bb-label">Ancho banda</span>
+          <span id="bbAncho" class="bb-valor">—</span>
+        </div>
+      </div>
+      <div id="bbPosicion" class="bb-posicion">—</div>
     </section>
 
     <!-- Tendencia y niveles -->

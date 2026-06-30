@@ -27,18 +27,29 @@ function setVarItem(id, valor) {
   el.className = 'var-valor ' + (valor >= 0 ? 'positivo' : 'negativo');
 }
 
+function buildSMA(valores, periodo) {
+  return valores.map((_, i) => {
+    if (i < periodo - 1) return null;
+    const slice = valores.slice(i - periodo + 1, i + 1);
+    return slice.reduce((a, b) => a + b, 0) / periodo;
+  });
+}
+
+function buildBollinger(valores, periodo = 20, desv = 2) {
+  return valores.map((_, i) => {
+    if (i < periodo - 1) return { upper: null, lower: null };
+    const slice = valores.slice(i - periodo + 1, i + 1);
+    const mean = slice.reduce((a, b) => a + b, 0) / periodo;
+    const std = Math.sqrt(slice.reduce((acc, v) => acc + (v - mean) ** 2, 0) / periodo);
+    return { upper: mean + desv * std, lower: mean - desv * std };
+  });
+}
+
 function renderGrafico(historial) {
   const ctx = document.getElementById('grafico').getContext('2d');
   const labels = historial.map(d => d.fecha.slice(5));
   const precios = historial.map(d => d.valor);
-
-  function buildSMA(valores, periodo) {
-    return valores.map((_, i) => {
-      if (i < periodo - 1) return null;
-      const slice = valores.slice(i - periodo + 1, i + 1);
-      return slice.reduce((a, b) => a + b, 0) / periodo;
-    });
-  }
+  const bb = buildBollinger(precios);
 
   if (graficoInstance) graficoInstance.destroy();
 
@@ -48,6 +59,27 @@ function renderGrafico(historial) {
       labels,
       datasets: [
         {
+          label: 'BB Superior',
+          data: bb.map(b => b.upper),
+          borderColor: 'rgba(124,58,237,0.5)',
+          borderWidth: 1,
+          pointRadius: 0,
+          tension: 0.3,
+          fill: false,
+          borderDash: [3, 3],
+        },
+        {
+          label: 'BB Inferior',
+          data: bb.map(b => b.lower),
+          borderColor: 'rgba(124,58,237,0.5)',
+          backgroundColor: 'rgba(124,58,237,0.05)',
+          borderWidth: 1,
+          pointRadius: 0,
+          tension: 0.3,
+          fill: '-1',
+          borderDash: [3, 3],
+        },
+        {
           label: 'USD/CLP',
           data: precios,
           borderColor: '#00e5ff',
@@ -55,7 +87,8 @@ function renderGrafico(historial) {
           borderWidth: 2,
           pointRadius: 2,
           tension: 0.3,
-          fill: true,
+          fill: false,
+          order: 0,
         },
         {
           label: 'SMA 7',
@@ -133,12 +166,13 @@ function renderDatos(data) {
   senalEl.className = 'senal-texto ' + analisis.senal;
   document.getElementById('senalRazon').textContent = analisis.razon;
 
-  document.getElementById('sma7').textContent = fmt(analisis.sma7);
+  document.getElementById('sma7').textContent  = fmt(analisis.sma7);
   document.getElementById('sma30').textContent = fmt(analisis.sma30);
+  document.getElementById('ema12').textContent = fmt(analisis.ema12);
+  document.getElementById('ema26').textContent = fmt(analisis.ema26);
 
   const rsiEl = document.getElementById('rsi');
   rsiEl.textContent = analisis.rsi !== null ? analisis.rsi.toFixed(1) : '—';
-
   const estadoEl = document.getElementById('estadoRSI');
   estadoEl.textContent = analisis.estadoRSI || '—';
   estadoEl.className = 'ind-sub ' + (analisis.estadoRSI || '');
@@ -150,6 +184,34 @@ function renderDatos(data) {
     momEl.style.color = analisis.momentum >= 0 ? 'var(--green)' : 'var(--red)';
   } else {
     momEl.textContent = '—';
+  }
+
+  // MACD
+  const macd = analisis.macd;
+  if (macd) {
+    document.getElementById('macdVal').textContent = macd.macd.toFixed(3);
+    const histEl = document.getElementById('macdHist');
+    histEl.textContent = (macd.histogram >= 0 ? '+' : '') + macd.histogram.toFixed(3);
+    histEl.style.color = macd.histogram >= 0 ? 'var(--green)' : 'var(--red)';
+    const estadoMacd = document.getElementById('macdEstado');
+    estadoMacd.textContent = macd.macd > macd.signal ? 'alcista' : 'bajista';
+    estadoMacd.style.color = macd.macd > macd.signal ? 'var(--green)' : 'var(--red)';
+  }
+
+  // Bollinger
+  const bb = analisis.bollinger;
+  if (bb) {
+    document.getElementById('bbUpper').textContent  = fmt(bb.upper);
+    document.getElementById('bbMiddle').textContent = fmt(bb.middle);
+    document.getElementById('bbLower').textContent  = fmt(bb.lower);
+    document.getElementById('bbAncho').textContent  = bb.ancho + '%';
+    const precio = analisis.precio;
+    let pos;
+    if (precio >= bb.upper * 0.995)       pos = '⚠️ Precio en banda superior — posible sobrecompra o breakout alcista';
+    else if (precio <= bb.lower * 1.005)  pos = '📉 Precio en banda inferior — posible sobreventa o breakout bajista';
+    else if (precio > bb.middle)          pos = '📈 Precio en mitad superior de las bandas';
+    else                                  pos = '📊 Precio en mitad inferior de las bandas';
+    document.getElementById('bbPosicion').textContent = pos;
   }
 
   const tendEl = document.getElementById('tendencia');

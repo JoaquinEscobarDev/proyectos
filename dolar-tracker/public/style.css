@@ -214,6 +214,33 @@ main {
 .var-valor.positivo { color: var(--green); }
 .var-valor.negativo { color: var(--red); }
 
+/* BOLLINGER */
+.card-bollinger { padding: 18px 20px; }
+.bollinger-titulo {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.bollinger-sub { font-size: 0.65rem; opacity: 0.6; }
+.bollinger-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.bb-item { display: flex; flex-direction: column; gap: 3px; }
+.bb-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.bb-valor { font-size: 0.95rem; font-weight: 700; }
+.bb-posicion {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  line-height: 1.5;
+}
+
 /* GRÁFICO */
 .card-grafico { padding: 18px; }
 .grafico-titulo {
