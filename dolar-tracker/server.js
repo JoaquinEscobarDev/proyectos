@@ -1,3 +1,5 @@
+// Carga .env.local primero (valores locales), luego .env como fallback
+require('dotenv').config({ path: require('path').resolve(__dirname, '.env.local') });
 require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
