@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
@@ -16,16 +16,31 @@ function guardarHistorial(historial) {
   fs.writeFileSync(HISTORIAL_PATH, JSON.stringify(historial, null, 2));
 }
 
+function httpGet(url) {
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, {
+      headers: { 'User-Agent': 'usdclp-tracker/1.0' }
+    }, res => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}`));
+        try { resolve(JSON.parse(data)); }
+        catch (e) { reject(new Error('JSON inválido')); }
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(10000, () => { req.destroy(); reject(new Error('Timeout')); });
+  });
+}
+
 async function fetchDolarActual() {
-  const apiKey = process.env.EXCHANGE_API_KEY;
-  if (!apiKey) throw new Error('Falta la variable de entorno EXCHANGE_API_KEY');
+  const json = await httpGet('https://mindicador.cl/api/dolar');
+  const serie = json.serie;
+  if (!serie || serie.length === 0) throw new Error('mindicador.cl: serie vacía');
 
-  const res = await fetch(`https://v6.exchangerate-api.com/v6/${apiKey}/pair/USD/CLP`);
-  if (!res.ok) throw new Error(`ExchangeRate-API respondió ${res.status}`);
-  const json = await res.json();
-  if (json.result !== 'success') throw new Error(`ExchangeRate-API: ${json['error-type']}`);
-
-  const valor = parseFloat(json.conversion_rate.toFixed(2));
+  const ultimo = serie[0]; // el más reciente viene primero
+  const valor = parseFloat(parseFloat(ultimo.valor).toFixed(2));
   const fecha = new Date().toISOString();
   return { fecha, valor };
 }
@@ -36,8 +51,7 @@ async function actualizarHistorial() {
   const historial = leerHistorial();
   historial.push(nuevo);
 
-  // Conservar solo los últimos 30 días en puntos (máx 1000 entradas ~ 3 semanas de polling cada 30 min)
-  const limite = 60 * 24 * 2; // 2 días de granularidad cada 30 min = 96 entradas; para 30 días de vista diaria conservamos más
+  const limite = 60 * 24 * 2;
   const recortado = historial.slice(-Math.max(limite, 30));
   guardarHistorial(recortado);
 
@@ -45,7 +59,6 @@ async function actualizarHistorial() {
   return { nuevo, historial: recortado };
 }
 
-// Para el gráfico: agrupar historial por día (último valor del día)
 function historialPorDia(historial) {
   const porDia = {};
   for (const entry of historial) {
