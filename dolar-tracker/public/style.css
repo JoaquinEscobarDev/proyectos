@@ -11,7 +11,7 @@
   --yellow:   #ffd600;
   --text:     #e8eaf0;
   --text-muted: #6b7280;
-  --radius:   12px;
+  --radius:   10px;
   --font:     'Courier New', Courier, monospace;
   --shadow:   0 2px 12px rgba(0,0,0,0.4);
 }
@@ -38,6 +38,7 @@ body {
   display: flex;
   flex-direction: column;
   transition: background 0.3s, color 0.3s;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* ===== HEADER ===== */
@@ -52,31 +53,37 @@ header {
 .header-inner {
   max-width: 760px;
   margin: 0 auto;
-  padding: 12px 16px;
+  padding: 10px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
 }
 .logo {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--accent);
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .header-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex-shrink: 0;
 }
 .countdown {
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 4px 8px;
+  padding: 3px 6px;
   white-space: nowrap;
+}
+/* Ocultar el countdown en pantallas muy pequeñas */
+@media (max-width: 380px) {
+  .countdown { display: none; }
 }
 .btn-icon {
   background: transparent;
@@ -84,35 +91,49 @@ header {
   border-radius: 6px;
   color: var(--text);
   cursor: pointer;
-  font-size: 1rem;
-  padding: 4px 8px;
+  font-size: 0.95rem;
+  padding: 5px 7px;
+  min-width: 34px;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
-.btn-icon:hover { background: var(--bg3); }
+.btn-icon:hover, .btn-icon:active { background: var(--bg3); }
 .btn-actualizar {
   background: transparent;
   border: 1px solid var(--accent);
   color: var(--accent);
-  padding: 5px 12px;
+  padding: 5px 10px;
   border-radius: 6px;
   cursor: pointer;
   font-family: var(--font);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   transition: background 0.2s;
   white-space: nowrap;
+  min-height: 34px;
+  -webkit-tap-highlight-color: transparent;
 }
-.btn-actualizar:hover { background: rgba(0,229,255,0.08); }
+.btn-actualizar:hover, .btn-actualizar:active { background: rgba(0,229,255,0.08); }
 .btn-actualizar.loading { opacity: 0.5; pointer-events: none; }
+/* Texto "Actualizar" se oculta en pantallas pequeñas, queda solo el ícono */
+@media (max-width: 400px) {
+  .btn-actualizar .btn-text { display: none; }
+  .btn-actualizar { padding: 5px 8px; }
+}
 
 /* ===== MAIN ===== */
 main {
   max-width: 760px;
   margin: 0 auto;
-  padding: 14px 14px 24px;
+  padding: 10px 10px 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   flex: 1;
+  width: 100%;
 }
 
 /* ===== CARDS ===== */
@@ -120,22 +141,22 @@ main {
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 18px;
+  padding: 14px;
   box-shadow: var(--shadow);
   transition: background 0.3s, border-color 0.3s;
 }
 
 /* ===== PRECIO ===== */
-.card-precio { text-align: center; }
+.card-precio { text-align: center; padding: 16px 14px; }
 .precio-label {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .precio-valor {
-  font-size: 2.8rem;
+  font-size: 2.6rem;
   font-weight: 700;
   color: var(--accent);
   line-height: 1;
@@ -145,87 +166,86 @@ main {
 .precio-meta {
   display: flex;
   justify-content: center;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
   margin-bottom: 4px;
 }
-.variacion { font-size: 0.95rem; font-weight: 600; }
+.variacion { font-size: 0.9rem; font-weight: 600; }
 .variacion.positivo { color: var(--green); }
 .variacion.negativo { color: var(--red); }
-.variacion-apertura { font-size: 0.8rem; color: var(--text-muted); }
-.ultima-fecha { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+.variacion-apertura { font-size: 0.75rem; color: var(--text-muted); }
+.ultima-fecha { font-size: 0.62rem; color: var(--text-muted); margin-top: 2px; }
 
 /* ===== SEÑAL ===== */
 .card-senal {
   text-align: center;
   border-left: 3px solid var(--accent2);
+  padding: 14px;
 }
 .senal-titulo {
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   color: var(--text-muted);
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
-.senal-emoji   { font-size: 2.2rem; margin-bottom: 4px; }
-.senal-texto   { font-size: 1.4rem; font-weight: 700; letter-spacing: 3px; margin-bottom: 4px; }
+.senal-emoji   { font-size: 2rem; margin-bottom: 4px; }
+.senal-texto   { font-size: 1.25rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 4px; }
 .senal-texto.COMPRAR { color: var(--green); }
 .senal-texto.VENDER  { color: var(--red); }
 .senal-texto.ESPERAR { color: var(--yellow); }
 .senal-score {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: var(--text-muted);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .senal-razon {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  line-height: 1.55;
-  max-width: 480px;
-  margin: 0 auto;
+  line-height: 1.5;
 }
 
 /* ===== INDICADORES GRID ===== */
 .indicadores-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
 }
-.card-indicador { text-align: center; padding: 14px 10px; }
+.card-indicador { text-align: center; padding: 12px 8px; }
 .ind-label {
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   color: var(--text-muted);
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
   text-transform: uppercase;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
-.ind-valor { font-size: 1.25rem; font-weight: 700; color: var(--text); }
-.ind-sub   { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+.ind-valor { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+.ind-sub   { font-size: 0.62rem; color: var(--text-muted); margin-top: 2px; }
 .ind-sub.sobrecomprado { color: var(--red); }
 .ind-sub.sobrevendido  { color: var(--green); }
 .ind-sub.neutral       { color: var(--yellow); }
 
 /* ===== BOLLINGER ===== */
-.card-bollinger { padding: 16px 18px; }
+.card-bollinger { padding: 14px; }
 .bollinger-titulo {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
-.bollinger-sub { font-size: 0.62rem; opacity: 0.6; }
+.bollinger-sub { font-size: 0.6rem; opacity: 0.6; }
 .bollinger-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 10px;
 }
 .bb-item { display: flex; flex-direction: column; gap: 3px; }
-.bb-label { font-size: 0.64rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-.bb-valor { font-size: 0.95rem; font-weight: 700; }
+.bb-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.bb-valor { font-size: 0.9rem; font-weight: 700; }
 .bb-posicion {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
   border-top: 1px solid var(--border);
   padding-top: 8px;
@@ -233,16 +253,16 @@ main {
 }
 
 /* ===== NIVELES ===== */
-.card-niveles { padding: 16px 18px; }
+.card-niveles { padding: 14px; }
 .niveles-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 10px;
 }
-.nivel-item { display: flex; flex-direction: column; gap: 4px; }
-.nivel-label { font-size: 0.64rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
-.nivel-valor { font-size: 0.9rem; font-weight: 700; }
+.nivel-item { display: flex; flex-direction: column; gap: 3px; }
+.nivel-label { font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase; }
+.nivel-valor { font-size: 0.85rem; font-weight: 700; }
 .tendencia-badge.ALCISTA { color: var(--green); }
 .tendencia-badge.BAJISTA { color: var(--red); }
 .tendencia-badge.LATERAL { color: var(--yellow); }
@@ -250,56 +270,56 @@ main {
 .resistencia { color: var(--red); }
 .variaciones-row {
   display: flex;
-  gap: 16px;
+  gap: 0;
   border-top: 1px solid var(--border);
   padding-top: 10px;
-  flex-wrap: wrap;
+  justify-content: space-around;
 }
-.var-item { display: flex; flex-direction: column; gap: 3px; }
-.var-label { font-size: 0.64rem; color: var(--text-muted); text-transform: uppercase; }
-.var-valor { font-size: 0.9rem; font-weight: 600; }
+.var-item { display: flex; flex-direction: column; gap: 3px; align-items: center; }
+.var-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; }
+.var-valor { font-size: 0.85rem; font-weight: 600; }
 .var-valor.positivo { color: var(--green); }
 .var-valor.negativo { color: var(--red); }
 
 /* ===== GRÁFICOS ===== */
-.card-grafico { padding: 16px 18px; }
+.card-grafico { padding: 14px; }
 .grafico-titulo {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
-.grafico-sub { font-size: 0.6rem; opacity: 0.7; text-transform: none; letter-spacing: 0; }
-.grafico-wrap     { position: relative; height: 220px; }
-.grafico-wrap-sm  { position: relative; height: 130px; }
+.grafico-sub { font-size: 0.58rem; opacity: 0.7; text-transform: none; letter-spacing: 0; }
+.grafico-wrap     { position: relative; height: 200px; }
+.grafico-wrap-sm  { position: relative; height: 120px; }
 
 /* ===== TABLAS ===== */
-.card-senales, .card-historial { padding: 16px 18px; }
+.card-senales, .card-historial { padding: 14px; }
 .senales-titulo {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   color: var(--text);
 }
-.tabla-wrap { overflow-x: auto; }
+.tabla-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .tabla {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 .tabla th {
   color: var(--text-muted);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 6px 8px;
+  letter-spacing: 0.5px;
+  padding: 5px 6px;
   border-bottom: 1px solid var(--border);
   text-align: left;
   white-space: nowrap;
 }
 .tabla td {
-  padding: 7px 8px;
+  padding: 6px 6px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
   white-space: nowrap;
@@ -309,10 +329,10 @@ main {
 .tabla-empty { color: var(--text-muted); text-align: center; padding: 16px !important; }
 .badge {
   display: inline-block;
-  padding: 2px 7px;
+  padding: 2px 6px;
   border-radius: 4px;
   font-weight: 700;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
 }
 .badge-comprar { background: rgba(0,230,118,0.15); color: var(--green); }
 .badge-vender  { background: rgba(255,23,68,0.15);  color: var(--red); }
@@ -321,15 +341,28 @@ main {
 /* ===== FOOTER ===== */
 footer {
   border-top: 1px solid var(--border);
-  padding: 12px 16px;
+  padding: 10px 12px;
   text-align: center;
 }
-footer p { font-size: 0.66rem; color: var(--text-muted); line-height: 1.6; }
+footer p { font-size: 0.62rem; color: var(--text-muted); line-height: 1.6; }
 footer a { color: var(--accent); text-decoration: none; }
 
-/* ===== RESPONSIVE ===== */
+/* ===== RESPONSIVE — tablet y desktop ===== */
 @media (min-width: 480px) {
   .precio-valor { font-size: 3.4rem; }
+  .senal-texto  { font-size: 1.4rem; letter-spacing: 3px; }
   .indicadores-grid { grid-template-columns: repeat(4, 1fr); }
   .niveles-row { grid-template-columns: repeat(4, 1fr); }
+  .card { padding: 18px; }
+  .card-precio  { padding: 20px 18px; }
+  .card-senal   { padding: 18px; }
+  .grafico-wrap    { height: 220px; }
+  .grafico-wrap-sm { height: 130px; }
+  main { padding: 14px 14px 28px; gap: 12px; }
+  .senal-razon { max-width: 480px; margin: 0 auto; }
+}
+
+@media (min-width: 760px) {
+  .header-inner { padding: 12px 16px; }
+  .logo { font-size: 1rem; letter-spacing: 2px; }
 }
