@@ -38,7 +38,7 @@ let stockCache      = {};
 let sizeSkuPending  = null;
 let gridPrimeraVez  = false; // true solo al entrar a una categoría → activa animación stagger
 
-// El ToDo vive en el servidor (tabla todo_items), no en localStorage, para
+// El pedido vive en el servidor (tabla todo_items), no en localStorage, para
 // que todos los dispositivos vean siempre la misma lista.
 let todoItems = [];
 
@@ -57,7 +57,7 @@ const btnBack          = document.getElementById('btnBack');
 const btnRefreshAll    = document.getElementById('btnRefreshAll');
 const headerActions    = document.getElementById('headerActions');
 const headerTitle      = document.getElementById('headerTitle');
-// ToDo
+// Pedido
 const todoBadge        = document.getElementById('todoBadge');
 const todoEmptyState   = document.getElementById('todoEmptyState');
 const todoList         = document.getElementById('todoList');
@@ -78,8 +78,8 @@ async function init() {
   skusGuardados = await r.json();
   renderCategorias();
   await cargarTodo();
-  // Refresca el ToDo cada 20s para que los cambios de otros dispositivos
-  // (agregar, quitar, limpiar) se vean sin tener que recargar la página.
+  // Refresca el pedido cada 20s para que los cambios de otros dispositivos
+  // (agregar, quitar, vaciar) se vean sin tener que recargar la página.
   setInterval(cargarTodo, 20000);
 }
 
@@ -104,7 +104,7 @@ async function cargarTodo() {
     })),
   }));
 
-  // Precargar en silencio los productos del ToDo que no están en caché
+  // Precargar en silencio los productos del pedido que no están en caché
   // para que las imágenes se vean sin tener que entrar a cada categoría.
   const faltantes = todoItems.map(i => i.sku).filter(sku => productosCache[sku] === undefined);
   if (faltantes.length) {
@@ -131,14 +131,14 @@ function renderCategorias() {
   categoriasGrid.innerHTML = CATEGORIAS.map((c, i) => {
     const count = skusGuardados.filter(s => s.categoria === c.nombre).length;
     return `
-      <div class="categoria-card" data-cat="${c.nombre}" style="--i:${i}">
-        <span class="categoria-count ${count === 0 ? 'empty' : ''}">${count}</span>
-        <span class="categoria-icon">${c.icono}</span>
-        <span class="categoria-nombre">${c.nombre}</span>
+      <div class="category-card" data-cat="${c.nombre}" style="--i:${i}">
+        <span class="category-count${count === 0 ? ' is-empty' : ''}">${count}</span>
+        <span class="category-icon">${c.icono}</span>
+        <span class="category-name">${c.nombre}</span>
       </div>`;
   }).join('');
 
-  categoriasGrid.querySelectorAll('.categoria-card').forEach(card => {
+  categoriasGrid.querySelectorAll('.category-card').forEach(card => {
     card.addEventListener('click', () => abrirCategoria(card.dataset.cat));
   });
 }
@@ -154,15 +154,15 @@ function abrirCategoria(nombre) {
 
 async function mostrarVistaProductos(nombre) {
   categoriaActiva = nombre;
-  viewCategorias.style.display = 'none';
-  viewProductos.style.display  = 'flex';
-  viewProductos.classList.remove('view-enter');
+  viewCategorias.hidden = true;
+  viewProductos.hidden  = false;
+  viewProductos.classList.remove('view');
   void viewProductos.offsetWidth;
-  viewProductos.classList.add('view-enter');
-  btnBack.style.display        = 'inline-block';
-  headerActions.style.display  = 'flex';
+  viewProductos.classList.add('view');
+  btnBack.hidden        = false;
+  headerActions.hidden  = false;
   const cat = CATEGORIAS.find(c => c.nombre === nombre);
-  headerTitle.textContent = `${cat.icono} ${nombre}`;
+  headerTitle.innerHTML = `<span class="brand-mark">${cat.icono}</span> ${nombre}`;
   filtroInput.value = '';
   filtroMarca.value = '';
   gridPrimeraVez = true;
@@ -195,15 +195,15 @@ async function mostrarVistaProductos(nombre) {
 
 function mostrarVistaCategorias() {
   categoriaActiva = null;
-  viewProductos.style.display  = 'none';
-  viewCategorias.style.display = 'block';
-  viewCategorias.classList.remove('view-enter');
+  viewProductos.hidden  = true;
+  viewCategorias.hidden = false;
+  viewCategorias.classList.remove('view');
   void viewCategorias.offsetWidth;
-  viewCategorias.classList.add('view-enter');
-  btnBack.style.display        = 'none';
-  headerActions.style.display  = 'none';
-  headerTitle.textContent      = '🛒 Catálogo Falabella';
-  todoFab.style.display        = 'none';
+  viewCategorias.classList.add('view');
+  btnBack.hidden        = true;
+  headerActions.hidden  = true;
+  headerTitle.innerHTML = '<span class="brand-mark">◆</span> Catálogo';
+  todoFab.hidden        = true;
   renderCategorias();
 }
 
@@ -264,13 +264,15 @@ async function cargarProducto(sku, force = false) {
   renderTodo();
 }
 
-// El refresco real lo hace tu PC (ver watch-refresh.js) cada ~5 min — Railway
-// no puede scrapear Falabella de forma confiable. El botón solo deja la
-// solicitud y espera a que se procese para volver a cargar los precios.
+// El refresco real lo hace tu PC (ver watch-refresh.js) cada ~5 min — el
+// hosting no puede scrapear Falabella de forma confiable. El botón solo deja
+// la solicitud y espera a que se procese para volver a cargar los precios.
 btnRefreshAll.addEventListener('click', async () => {
   if (!categoriaActiva || btnRefreshAll.disabled) return;
   btnRefreshAll.disabled = true;
-  btnRefreshAll.textContent = '↻ Solicitando…';
+  const icon = btnRefreshAll.querySelector('.icon-refresh')?.outerHTML || '';
+  const setLabel = txt => { btnRefreshAll.innerHTML = `${icon}<span class="btn-label">${txt}</span>`; };
+  setLabel('Solicitando…');
 
   let solicitudId;
   try {
@@ -283,12 +285,12 @@ btnRefreshAll.addEventListener('click', async () => {
     if (!r.ok) throw new Error(data.error || 'Error al solicitar');
     solicitudId = data.id;
   } catch (e) {
-    btnRefreshAll.textContent = '❌ ' + e.message;
-    setTimeout(() => { btnRefreshAll.textContent = '↻ Actualizar precios'; btnRefreshAll.disabled = false; }, 3000);
+    setLabel('❌ ' + e.message);
+    setTimeout(() => resetBtnRefresh(icon), 3000);
     return;
   }
 
-  btnRefreshAll.textContent = '↻ Esperando tu PC…';
+  setLabel('Esperando…');
   const categoriaAlSolicitar = categoriaActiva;
 
   // Tu PC revisa solicitudes pendientes cada ~5 min — esperamos hasta 12 min en total.
@@ -306,14 +308,19 @@ btnRefreshAll.addEventListener('click', async () => {
         renderGrid();
         await Promise.all(skusCat.map(s => Promise.all([cargarProducto(s.sku), cargarStock(s.sku)])));
       }
-      btnRefreshAll.textContent = '✓ Precios actualizados';
-      setTimeout(() => { btnRefreshAll.textContent = '↻ Actualizar precios'; btnRefreshAll.disabled = false; }, 3000);
+      setLabel('✓ Precios actualizados');
+      setTimeout(() => resetBtnRefresh(icon), 3000);
       return;
     }
   }
-  btnRefreshAll.textContent = '⏱ Tardó más de lo esperado';
-  setTimeout(() => { btnRefreshAll.textContent = '↻ Actualizar precios'; btnRefreshAll.disabled = false; }, 4000);
+  setLabel('⏱ Tardó más de lo esperado');
+  setTimeout(() => resetBtnRefresh(icon), 4000);
 });
+
+function resetBtnRefresh(iconHTML) {
+  btnRefreshAll.innerHTML = `${iconHTML}<span class="btn-label">Actualizar precios</span>`;
+  btnRefreshAll.disabled = false;
+}
 
 async function cargarStock(sku) {
   if (stockCache[sku] !== undefined) return;
@@ -367,7 +374,7 @@ function renderGrid() {
   }).sort((a, b) => precioOrden(productosCache[a.sku]) - precioOrden(productosCache[b.sku]));
 
   if (!lista.length) {
-    grid.innerHTML = '<div class="empty-state">No hay productos en esta categoría.<br>Agregá un SKU arriba.</div>';
+    grid.innerHTML = '<p class="empty-state">No hay productos en esta categoría.<br>Agrega un SKU arriba.</p>';
     return;
   }
   // Solo animar cuando ya hay datos reales (no skeletons de carga)
@@ -375,106 +382,103 @@ function renderGrid() {
   const animar = gridPrimeraVez && hayDatos;
   if (animar) gridPrimeraVez = false;
   grid.innerHTML = lista.map((s, i) => tarjeta(s, animar ? i : -1)).join('');
-  grid.querySelectorAll('.btn-delete').forEach(btn => {
+  grid.querySelectorAll('.card-delete').forEach(btn => {
     btn.addEventListener('click', () => eliminarSku(btn.dataset.sku));
   });
-  grid.querySelectorAll('.btn-cambiar').forEach(btn => {
+  grid.querySelectorAll('.btn-order').forEach(btn => {
     btn.addEventListener('click', () => toggleTodo(btn.dataset.sku));
   });
 }
 
 function badgeStock(sku) {
   const info = stockCache[sku];
-  if (info === undefined || info === null) return '<span class="stock-badge stock-loading">Stock…</span>';
+  if (info === undefined || info === null) return '<span class="stock-badge stock--loading">Stock…</span>';
   const n = info.stock;
-  if (n === null || n === undefined) return '<span class="stock-badge stock-unknown">Sin info</span>';
-  if (n <= 2) return `<span class="stock-badge stock-low">Revisar</span>`;
-  return `<span class="stock-badge stock-ok">Stock: ${n}</span>`;
+  if (n === null || n === undefined) return '<span class="stock-badge stock--unknown">Sin info</span>';
+  if (n <= 2) return `<span class="stock-badge stock--low">Revisar</span>`;
+  return `<span class="stock-badge stock--ok">Stock: ${n}</span>`;
 }
 
 function tarjeta({ sku, alias }, idx = -1) {
   const prod    = productosCache[sku];
   const enLista = todoItems.some(item => item.sku === sku);
-  const animAttr = idx >= 0 ? ` animate-in" style="--i:${idx}` : '';
+  const animCls = idx >= 0 ? ' animate-in' : '';
+  const animStyle = idx >= 0 ? ` style="--i:${idx}"` : '';
 
   if (prod === undefined || prod === null) {
     return `
-      <div class="card loading${animAttr}">
-        <div class="card-top-actions">
-          <button class="btn-delete" data-sku="${sku}" title="Eliminar">✕</button>
+      <div class="card${animCls}"${animStyle}>
+        <div class="card-actions">
+          <button class="card-delete" data-sku="${sku}" title="Eliminar">✕</button>
         </div>
-        <div class="card-img-placeholder">⏳</div>
-        <div class="card-content">
-          <div class="card-body">
-            ${alias ? `<span class="card-alias">${alias}</span>` : ''}
-            <span class="card-sku">SKU: ${sku}</span>
-            <p class="card-loading-msg">Cargando…</p>
-          </div>
+        <div class="card-media-placeholder">⏳</div>
+        <div class="card-body">
+          ${alias ? `<span class="card-alias">${alias}</span>` : ''}
+          <span class="card-sku">SKU: ${sku}</span>
+          <p class="card-loading-msg">Cargando…</p>
         </div>
       </div>`;
   }
 
   if (prod.error) {
     return `
-      <div class="card error${animAttr}">
-        <div class="card-top-actions">
-          <button class="btn-delete" data-sku="${sku}" title="Eliminar">✕</button>
+      <div class="card${animCls}"${animStyle}>
+        <div class="card-actions">
+          <button class="card-delete" data-sku="${sku}" title="Eliminar">✕</button>
         </div>
-        <div class="card-img-placeholder">❌</div>
-        <div class="card-content">
-          <div class="card-body">
-            ${alias ? `<span class="card-alias">${alias}</span>` : ''}
-            <span class="card-sku">SKU: ${sku}</span>
-            <p class="card-error-msg">${prod.error}</p>
-          </div>
+        <div class="card-media-placeholder">❌</div>
+        <div class="card-body">
+          ${alias ? `<span class="card-alias">${alias}</span>` : ''}
+          <span class="card-sku">SKU: ${sku}</span>
+          <p class="card-error-msg">${prod.error}</p>
         </div>
       </div>`;
   }
 
   const img = prod.imagen
-    ? `<img class="card-img" src="${prod.imagen}" alt="${prod.nombre}" loading="lazy" />`
-    : `<div class="card-img-placeholder">📦</div>`;
+    ? `<img class="card-media" src="${prod.imagen}" alt="${prod.nombre}" loading="lazy" />`
+    : `<div class="card-media-placeholder">📦</div>`;
 
   const fmt = n => n ? `$${Number(n).toLocaleString('es-CL')}` : null;
 
   const cmrRow = prod.precioCMR
-    ? `<div class="precio-fila"><span class="precio-label">CMR</span><span class="precio-cmr">${fmt(prod.precioCMR)}</span></div>`
+    ? `<div class="price-row"><span class="price-label">CMR</span><span class="price-cmr">${fmt(prod.precioCMR)}</span></div>`
     : '';
 
   let bloquePrecio = '';
   if (prod.precioOferta) {
     bloquePrecio = `
-      <div class="precio-fila"><span class="precio-label">Normal</span><span class="precio-tachado">${fmt(prod.precio) || '—'}</span></div>
-      <div class="precio-fila"><span class="precio-label">Oferta</span><span class="precio-oferta">${fmt(prod.precioOferta)}</span></div>
+      <div class="price-row"><span class="price-label">Normal</span><span class="price-old">${fmt(prod.precio) || '—'}</span></div>
+      <div class="price-row"><span class="price-label">Oferta</span><span class="price-offer">${fmt(prod.precioOferta)}</span></div>
       ${cmrRow}`;
   } else if (prod.precio) {
     bloquePrecio = `
-      <div class="precio-fila"><span class="precio-label">Precio</span><span class="precio-normal">${fmt(prod.precio)}</span></div>
+      <div class="price-row"><span class="price-label">Precio</span><span class="price-normal">${fmt(prod.precio)}</span></div>
       ${cmrRow}`;
   } else {
-    bloquePrecio = `<div class="precio-fila"><span class="precio-normal" style="color:#999">Sin precio</span></div>${cmrRow}`;
+    bloquePrecio = `<div class="price-row"><span class="price-empty">Sin precio</span></div>${cmrRow}`;
   }
 
   let bloqueGarantia = '';
   if (prod.garantia1a || prod.garantia2a || prod.garantia3a) {
     const filas = [
-      prod.garantia1a ? `<span class="garantia-item">1a: ${fmt(prod.garantia1a)}</span>` : '',
-      prod.garantia2a ? `<span class="garantia-item">2a: ${fmt(prod.garantia2a)}</span>` : '',
-      prod.garantia3a ? `<span class="garantia-item">3a: ${fmt(prod.garantia3a)}</span>` : '',
+      prod.garantia1a ? `<span class="warranty-item">1a: ${fmt(prod.garantia1a)}</span>` : '',
+      prod.garantia2a ? `<span class="warranty-item">2a: ${fmt(prod.garantia2a)}</span>` : '',
+      prod.garantia3a ? `<span class="warranty-item">3a: ${fmt(prod.garantia3a)}</span>` : '',
     ].filter(Boolean).join('');
-    bloqueGarantia = `<div class="card-garantia"><span class="garantia-label">🛡️ Garantía ext.</span>${filas}</div>`;
+    bloqueGarantia = `<div class="card-warranty"><span class="warranty-label">🛡️ Garantía ext.</span>${filas}</div>`;
   }
 
   const bloqueCuotas = prod.cuotasSinInteres
-    ? `<div class="card-cuotas">💳 Hasta ${prod.cuotasSinInteres} cuotas sin interés (CMR)</div>`
+    ? `<div class="card-installments">💳 Hasta ${prod.cuotasSinInteres} cuotas sin interés (CMR)</div>`
     : '';
 
   const bloqueDespacho = prod.despacho24h
-    ? `<div class="card-despacho">🚚 Despacho 24 horas</div>`
+    ? `<div class="card-shipping">🚚 Despacho 24 horas</div>`
     : '';
 
-  const btnLabel = enLista ? '✓ En lista' : '🔖 Cambiar';
-  const btnClass = enLista ? 'btn-cambiar en-lista' : 'btn-cambiar';
+  const btnLabel = enLista ? '✓ En pedido' : 'Agregar al pedido';
+  const btnClass = enLista ? 'btn-order btn-order--added' : 'btn-order';
 
   let cacheBadge = '';
   if (prod.cached && prod.updatedAt) {
@@ -483,32 +487,30 @@ function tarjeta({ sku, alias }, idx = -1) {
     const hora    = d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
     const relativo = formatRelativo(d);
     const vieja   = (Date.now() - d.getTime()) > 36 * 3600 * 1000; // más de 36h sin actualizar
-    cacheBadge  = `<span class="cache-badge${vieja ? ' cache-badge-vieja' : ''}" title="Precio guardado el ${fecha} a las ${hora}">🕐 ${relativo}</span>`;
+    cacheBadge  = `<span class="card-updated${vieja ? ' card-updated--stale' : ''}" title="Precio guardado el ${fecha} a las ${hora}">🕐 ${relativo}</span>`;
   }
 
   return `
-    <div class="card${prod.cached ? ' cached' : ''}${animAttr}">
-      <div class="card-top-actions">
-        <button class="btn-delete" data-sku="${sku}" title="Eliminar">✕</button>
+    <div class="card${prod.cached ? ' card--cached' : ''}${animCls}"${animStyle}>
+      <div class="card-actions">
+        <button class="card-delete" data-sku="${sku}" title="Eliminar">✕</button>
       </div>
       ${img}
-      <div class="card-content">
-        <div class="card-body">
-          ${alias ? `<span class="card-alias">${alias}</span>` : ''}
-          ${prod.capacidad ? `<span class="card-capacidad">${prod.capacidad}${prod.color ? ` · ${prod.color}` : ''}</span>` : ''}
-          <span class="card-nombre" title="${prod.nombre}">${prod.nombre}</span>
-          <span class="card-sku">SKU: ${sku}</span>
-          <div class="card-precios">${bloquePrecio}</div>
-          ${bloqueDespacho}
-          ${bloqueCuotas}
-          ${bloqueGarantia}
-          ${badgeStock(sku)}
-          ${cacheBadge}
-        </div>
-        <div class="card-footer">
-          ${prod.url ? `<a class="card-link" href="${prod.url}" target="_blank" rel="noopener">Ver →</a>` : '<span></span>'}
-          <button class="${btnClass}" data-sku="${sku}">${btnLabel}</button>
-        </div>
+      <div class="card-body">
+        ${alias ? `<span class="card-alias">${alias}</span>` : ''}
+        ${prod.capacidad ? `<span class="card-attrs">${prod.capacidad}${prod.color ? ` · ${prod.color}` : ''}</span>` : ''}
+        <span class="card-name" title="${prod.nombre}">${prod.nombre}</span>
+        <span class="card-sku">SKU: ${sku}</span>
+        <div class="card-prices">${bloquePrecio}</div>
+        ${bloqueDespacho}
+        ${bloqueCuotas}
+        ${bloqueGarantia}
+        ${badgeStock(sku)}
+        ${cacheBadge}
+      </div>
+      <div class="card-footer">
+        ${prod.url ? `<a class="card-link" href="${prod.url}" target="_blank" rel="noopener">Ver →</a>` : '<span></span>'}
+        <button class="${btnClass}" data-sku="${sku}">${btnLabel}</button>
       </div>
     </div>`;
 }
@@ -528,12 +530,12 @@ async function eliminarSku(sku) {
 
 function mostrarMsg(msg, tipo) {
   msgAgregar.textContent = msg;
-  msgAgregar.className   = 'msg ' + tipo;
+  msgAgregar.className   = 'form-msg ' + tipo;
   if (tipo === 'ok') setTimeout(() => { msgAgregar.textContent = ''; }, 3000);
 }
 
 // ══════════════════════════════════════════
-// TODO
+// LISTA DE PEDIDO
 // ══════════════════════════════════════════
 
 async function toggleTodo(sku) {
@@ -560,9 +562,9 @@ function renderTodo() {
 
   todoBadge.textContent = count;
   todoBadge.classList.toggle('zero', count === 0);
-  todoEmptyState.style.display = count === 0 ? 'block' : 'none';
-  todoModalEmpty.style.display = count === 0 ? 'block' : 'none';
-  todoClearModal.style.display = count === 0 ? 'none'  : 'block';
+  todoEmptyState.hidden = count !== 0;
+  todoModalEmpty.hidden = count !== 0;
+  todoClearModal.hidden = count === 0;
 
   actualizarFab();
 
@@ -578,8 +580,8 @@ function renderTodo() {
     const alias = datos?.alias || '';
 
     const thumb = prod?.imagen
-      ? `<img class="todo-thumb" src="${prod.imagen}" alt="" />`
-      : `<div class="todo-thumb-placeholder">📦</div>`;
+      ? `<img class="order-thumb" src="${prod.imagen}" alt="" />`
+      : `<div class="order-thumb-placeholder">📦</div>`;
 
     const nombre = prod?.nombre || alias || sku;
     const fmt    = n => n ? `$${Number(n).toLocaleString('es-CL')}` : null;
@@ -589,41 +591,41 @@ function renderTodo() {
 
     const fechaCambio = cambios?.length ? new Date(cambios[cambios.length - 1].fecha) : null;
     const cambiosHTML = cambios?.length
-      ? `<div class="todo-cambios">
-          ${cambios.map(c => `<span class="todo-cambio-linea">${c.texto}</span>`).join('')}
-          ${fechaCambio ? `<span class="todo-cambio-fecha">${fechaCambio.toLocaleDateString('es-CL')}</span>` : ''}
+      ? `<div class="order-changes">
+          ${cambios.map(c => `<span class="order-change-line">${c.texto}</span>`).join('')}
+          ${fechaCambio ? `<span class="order-change-date">${fechaCambio.toLocaleDateString('es-CL')}</span>` : ''}
         </div>`
       : '';
 
     return `
-      <li class="todo-item">
+      <li class="order-item">
         ${thumb}
-        <div class="todo-info">
-          <span class="todo-nombre" title="${nombre}">${nombre}</span>
-          <span class="todo-sku">SKU: ${sku}</span>
-          <span class="todo-precio">${precio}</span>
-          <span class="todo-size">${size} × ${quantity}</span>
+        <div class="order-info">
+          <span class="order-name" title="${nombre}">${nombre}</span>
+          <span class="order-sku">SKU: ${sku}</span>
+          <span class="order-price">${precio}</span>
+          <span class="order-size">${size} × ${quantity}</span>
           ${cambiosHTML}
         </div>
-        <button class="todo-remove" data-sku="${sku}" title="Quitar">✕</button>
+        <button class="order-remove" data-sku="${sku}" title="Quitar">✕</button>
       </li>`;
   };
 
   const itemsHTML = Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'es')).map(categoria =>
-    `<li class="todo-categoria">${categoria}</li>${grupos[categoria].map(itemHTML).join('')}`
+    `<li class="order-category">${categoria}</li>${grupos[categoria].map(itemHTML).join('')}`
   ).join('');
 
   todoList.innerHTML      = itemsHTML;
   todoListModal.innerHTML = itemsHTML;
 
-  document.querySelectorAll('.todo-remove').forEach(btn => {
+  document.querySelectorAll('.order-remove').forEach(btn => {
     btn.addEventListener('click', () => toggleTodo(btn.dataset.sku));
   });
 }
 
 function actualizarFab() {
   todoFabCount.textContent = todoItems.length;
-  if (categoriaActiva) todoFab.style.display = 'flex';
+  if (categoriaActiva) todoFab.hidden = false;
   todoFab.classList.toggle('has-items', todoItems.length > 0);
 }
 
@@ -638,19 +640,19 @@ function abrirSizeModal(sku) {
   const nombre = prod?.nombre || datos?.alias || `SKU ${sku}`;
   document.getElementById('sizeTitulo').textContent =
     nombre.length > 40 ? nombre.slice(0, 40) + '…' : nombre;
-  document.getElementById('sizeStep1').style.display = 'block';
-  document.getElementById('sizeStep2').style.display = 'none';
-  document.getElementById('sizeStep2').dataset.size  = '';
-  document.getElementById('qtyInput').value          = 1;
+  document.getElementById('sizeStep1').hidden = false;
+  document.getElementById('sizeStep2').hidden = true;
+  document.getElementById('sizeStep2').dataset.size = '';
+  document.getElementById('qtyInput').value = 1;
   document.getElementById('sizeOverlay').classList.add('open');
 }
 
-document.querySelectorAll('.size-btn').forEach(btn => {
+document.querySelectorAll('.size-option').forEach(btn => {
   btn.addEventListener('click', () => {
     document.getElementById('sizeStep2').dataset.size        = btn.dataset.size;
     document.getElementById('sizeSelectedLabel').textContent = btn.dataset.size;
-    document.getElementById('sizeStep1').style.display       = 'none';
-    document.getElementById('sizeStep2').style.display       = 'block';
+    document.getElementById('sizeStep1').hidden               = true;
+    document.getElementById('sizeStep2').hidden               = false;
   });
 });
 
@@ -689,7 +691,7 @@ document.getElementById('sizeOverlay').addEventListener('click', e => {
     document.getElementById('sizeOverlay').classList.remove('open');
 });
 
-// ── Modal ToDo ──
+// ── Modal pedido ──
 todoFab.addEventListener('click', () => todoOverlay.classList.add('open'));
 todoModalClose.addEventListener('click', () => todoOverlay.classList.remove('open'));
 todoOverlay.addEventListener('click', e => {
@@ -698,10 +700,10 @@ todoOverlay.addEventListener('click', e => {
 
 todoClear.addEventListener('click', () => {
   if (todoItems.length === 0) return;
-  if (confirm('¿Limpiar toda la lista?')) limpiarTodo();
+  if (confirm('¿Vaciar toda la lista?')) limpiarTodo();
 });
 todoClearModal.addEventListener('click', () => {
-  if (confirm('¿Limpiar toda la lista?')) {
+  if (confirm('¿Vaciar toda la lista?')) {
     limpiarTodo();
     todoOverlay.classList.remove('open');
   }
