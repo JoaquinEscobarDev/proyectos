@@ -1,0 +1,7 @@
+node_modules/
+skus.json
+productos-cache.json
+.env
+refresh-local.log
+watch-refresh.log
+*.traineddata

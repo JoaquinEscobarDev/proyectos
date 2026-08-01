@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catálogo Falabella</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#0a0b10" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Catálogo" />
+  <link rel="apple-touch-icon" href="/icon.svg" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-left">
+        <button type="button" id="btnBack" class="btn-icon-back" hidden aria-label="Volver a categorías">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <h1 id="headerTitle" class="brand">
+          <span class="brand-mark">◆</span> Catálogo
+        </h1>
+      </div>
+      <div class="topbar-actions" id="headerActions" hidden>
+        <button type="button" id="btnRefreshAll" class="btn btn-ghost">
+          <svg viewBox="0 0 24 24" width="16" height="16" class="icon-refresh"><path d="M21 12a9 9 0 1 1-3-6.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M21 3v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="btn-label">Actualizar precios</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- ── Vista: Categorías ── -->
+    <section id="viewCategorias" class="view">
+      <p class="lead">Elige una zona para revisar sus precios</p>
+      <div class="category-grid" id="categoriasGrid"></div>
+    </section>
+
+    <!-- ── Vista: Productos de una categoría ── -->
+    <section id="viewProductos" class="view view-productos" hidden>
+
+      <div class="panel panel-add">
+        <form id="formAgregar" class="add-form">
+          <input type="text" id="inputSku" class="input" placeholder="SKU del producto (ej: 17461845)" required inputmode="numeric" />
+          <input type="text" id="inputAlias" class="input" placeholder="Alias (opcional)" />
+          <button type="submit" class="btn btn-accent">Agregar</button>
+        </form>
+        <p id="msgAgregar" class="form-msg"></p>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-field">
+          <svg viewBox="0 0 24 24" width="16" height="16" class="search-icon"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="text" id="filtro" placeholder="Buscar por nombre, SKU o alias…" />
+        </div>
+        <select id="filtroMarca" class="select">
+          <option value="">Todas las marcas</option>
+        </select>
+      </div>
+
+      <div class="layout">
+        <div id="grid" class="product-grid">
+          <p class="empty-state">Cargando productos…</p>
+        </div>
+
+        <!-- Lista de pedido (desktop) -->
+        <aside class="order-panel" id="todoSidebar">
+          <div class="order-panel-head">
+            <span class="order-panel-title">Lista de pedido <span class="pill" id="todoBadge">0</span></span>
+            <button type="button" class="link-btn" id="todoClear">Vaciar</button>
+          </div>
+          <p class="order-empty" id="todoEmptyState">
+            Presiona <strong>Agregar al pedido</strong> en un producto para sumarlo acá.
+          </p>
+          <ul class="order-list" id="todoList"></ul>
+        </aside>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FAB móvil -->
+  <button type="button" class="fab" id="todoFab" hidden>
+    <svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M3 6h18" stroke="currentColor" stroke-width="2"/><path d="M16 10a4 4 0 0 1-8 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <span id="todoFabCount">0</span>
+  </button>
+
+  <!-- Modal pedido (móvil) -->
+  <div class="sheet-overlay" id="todoOverlay">
+    <div class="sheet">
+      <div class="sheet-head">
+        <span class="sheet-title">Lista de pedido</span>
+        <button type="button" class="sheet-close" id="todoModalClose" aria-label="Cerrar">✕</button>
+      </div>
+      <p class="order-empty" id="todoModalEmpty">
+        Presiona <strong>Agregar al pedido</strong> en un producto para sumarlo acá.
+      </p>
+      <ul class="order-list" id="todoListModal"></ul>
+      <button type="button" class="btn btn-ghost btn-block" id="todoClearModal">Vaciar lista</button>
+    </div>
+  </div>
+
+  <!-- Modal tamaño / cantidad -->
+  <div class="sheet-overlay" id="sizeOverlay">
+    <div class="sheet sheet-compact">
+      <div class="sheet-head">
+        <span class="sheet-title" id="sizeTitulo">Agregar al pedido</span>
+        <button type="button" class="sheet-close" id="sizeClose" aria-label="Cerrar">✕</button>
+      </div>
+      <div id="sizeStep1">
+        <p class="sheet-question">¿Qué tamaño?</p>
+        <div class="size-options">
+          <button type="button" class="size-option" data-size="Grande">Grande</button>
+          <button type="button" class="size-option" data-size="Mediano">Mediano</button>
+          <button type="button" class="size-option" data-size="Pequeño">Pequeño</button>
+        </div>
+      </div>
+      <div id="sizeStep2" hidden data-size="">
+        <p class="sheet-question">Tamaño: <strong id="sizeSelectedLabel"></strong></p>
+        <p class="sheet-question">¿Cuántas unidades?</p>
+        <div class="qty-row">
+          <button type="button" id="qtyMinus" class="qty-btn" aria-label="Restar">−</button>
+          <input id="qtyInput" type="number" value="1" min="1" max="99" />
+          <button type="button" id="qtyPlus" class="qty-btn" aria-label="Sumar">+</button>
+        </div>
+        <button type="button" id="sizeConfirm" class="btn btn-accent btn-block">Agregar al pedido</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
+</body>
+</html>
