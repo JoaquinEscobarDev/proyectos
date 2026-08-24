@@ -1,0 +1,114 @@
+/* ===== PORTADA proyectos.fun ===== */
+:root {
+  --bg:      #0d0f14;
+  --bg2:     #151820;
+  --bg3:     #1e2230;
+  --borde:   #2a2f42;
+  --texto:   #e8eaf0;
+  --texto2:  #6b7280;
+  --cyan:    #00e5ff;
+  --verde:   #00e676;
+  --rosa:    #ff6d9d;
+  --violeta: #7c3aed;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--texto);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 3.5rem 1.25rem 2rem;
+}
+
+/* ===== HERO ===== */
+.hero { text-align: center; margin-bottom: 3rem; animation: aparecer .7s ease both; }
+.hero h1 {
+  font-family: 'Courier New', monospace;
+  font-size: clamp(2.2rem, 7vw, 3.5rem);
+  letter-spacing: -1px;
+}
+.dominio { color: var(--texto); }
+.punto   { color: var(--cyan); }
+.tagline { color: var(--texto2); margin-top: .5rem; font-size: 1.05rem; }
+
+/* ===== CARDS ===== */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  background: var(--bg2);
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  padding: 1.6rem 1.4rem;
+  text-decoration: none;
+  color: var(--texto);
+  transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+  animation: aparecer .7s ease both;
+}
+.card:nth-child(1) { animation-delay: .10s; }
+.card:nth-child(2) { animation-delay: .22s; }
+.card:nth-child(3) { animation-delay: .34s; }
+
+a.card:hover {
+  transform: translateY(-6px);
+}
+.card-dolar:hover  { border-color: var(--cyan); box-shadow: 0 12px 32px rgba(0, 229, 255, .12); }
+.card-cartas:hover { border-color: var(--rosa); box-shadow: 0 12px 32px rgba(255, 109, 157, .14); }
+
+.card-emoji { font-size: 2.2rem; line-height: 1; }
+.card h2 { font-size: 1.25rem; font-weight: 700; }
+.card p  { color: var(--texto2); font-size: .92rem; line-height: 1.5; flex: 1; }
+
+.card-cta {
+  font-family: 'Courier New', monospace;
+  font-size: .88rem;
+  font-weight: 700;
+  margin-top: .4rem;
+}
+.card-dolar  .card-cta { color: var(--cyan); }
+.card-cartas .card-cta { color: var(--rosa); }
+
+.card-proximamente {
+  border-style: dashed;
+  opacity: .55;
+  cursor: default;
+}
+.card-proximamente .card-cta { color: var(--texto2); }
+
+/* ===== FOOTER ===== */
+footer {
+  text-align: center;
+  padding: 1.5rem 1rem 2rem;
+  color: var(--texto2);
+  font-size: .85rem;
+}
+footer a { color: var(--cyan); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+/* ===== ANIMACIONES ===== */
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero, .card { animation: none; }
+  a.card:hover { transform: none; }
+}

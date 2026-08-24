@@ -1,5 +1,5 @@
-const CACHE = 'usdclp-v3';
-const STATIC = ['/', '/style.css', '/app.js', '/config.js', '/icon-192.png'];
+const CACHE = 'usdclp-v4';
+const STATIC = ['/dolar/', '/dolar/style.css', '/dolar/app.js', '/dolar/config.js', '/dolar/icon-192.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC)).catch(() => {}));
@@ -29,7 +29,7 @@ self.addEventListener('fetch', e => {
       caches.match(e.request).then(cached => {
         if (cached) return cached;
         // Solo la navegación cae al index; scripts/estilos deben fallar limpio
-        if (e.request.mode === 'navigate') return caches.match('/');
+        if (e.request.mode === 'navigate') return caches.match('/dolar/');
         return Response.error();
       })
     )
@@ -43,9 +43,9 @@ self.addEventListener('push', e => {
   e.waitUntil(
     self.registration.showNotification(data.title || 'USD/CLP Tracker', {
       body:  data.body  || '',
-      icon:  data.icon  || '/icon-192.png',
-      badge: data.badge || '/icon-192.png',
-      data:  data.data  || { url: '/' },
+      icon:  data.icon  || '/dolar/icon-192.png',
+      badge: data.badge || '/dolar/icon-192.png',
+      data:  data.data  || { url: '/dolar/' },
       vibrate: [200, 100, 200],
     })
   );
@@ -54,7 +54,7 @@ self.addEventListener('push', e => {
 // Click en notificación → abrir la app
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  const url = e.notification.data?.url || '/';
+  const url = e.notification.data?.url || '/dolar/';
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
       const existing = list.find(c => c.url.includes(url));
