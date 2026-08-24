@@ -3,6 +3,8 @@ const BASE = window.API_BASE || '';
 let graficoInstance    = null;
 let graficoRSIInstance = null;
 let proximaActualizacion = null;
+let precioAnterior = null;
+let primeraCarga = true;
 
 // ===== FORMATO =====
 const fmtCLP = n => n != null ? '$' + Number(n).toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
@@ -19,27 +21,107 @@ function setVarEl(id, valor) {
   el.className = 'var-valor ' + claseVar(valor);
 }
 
-// ===== COUNTDOWN =====
-function calcularProximaActualizacion() {
-  const ahora = new Date();
-  const dia   = ahora.getDay(); // 0=Dom, 1=Lun...5=Vie, 6=Sab
-  const h = ahora.getHours(), m = ahora.getMinutes();
-  // Próximo múltiplo de 30 min dentro de 9-18 L-V
-  if (dia === 0 || dia === 6 || h >= 18 || (dia === 5 && h >= 18)) {
-    return null; // fuera de horario
+// ===== SKELETON =====
+function mostrarSkeleton() {
+  const skel = document.getElementById('precioSkel');
+  const data = document.getElementById('precioData');
+  if (skel) skel.style.display = 'block';
+  if (data) data.style.display = 'none';
+}
+
+function ocultarSkeleton() {
+  const skel = document.getElementById('precioSkel');
+  const data = document.getElementById('precioData');
+  if (skel) skel.style.display = 'none';
+  if (data) data.style.display = 'block';
+  primeraCarga = false;
+}
+
+// ===== FLASH DE PRECIO =====
+function flashPrecio(nuevo) {
+  if (precioAnterior === null) { precioAnterior = nuevo; return; }
+  if (nuevo === precioAnterior) return;
+  const el = document.getElementById('precioActual');
+  if (!el) return;
+  el.classList.remove('flash-up', 'flash-down');
+  void el.offsetWidth; // force reflow para reiniciar animación
+  if (nuevo > precioAnterior) el.classList.add('flash-up');
+  else                        el.classList.add('flash-down');
+  el.addEventListener('animationend', () => el.classList.remove('flash-up', 'flash-down'), { once: true });
+  precioAnterior = nuevo;
+}
+
+// ===== SCORE DOTS =====
+function renderScoreDots(votos) {
+  const el = document.getElementById('scoreDots');
+  if (!el || !votos || votos.length === 0) return;
+  el.innerHTML = votos.map(v => {
+    const cls = v.voto > 0 ? 'score-dot-buy' : v.voto < 0 ? 'score-dot-sell' : 'score-dot-neutral';
+    const sym = v.voto > 0 ? '▲' : v.voto < 0 ? '▼' : '–';
+    const tooltip = `${v.ind}: ${v.texto}`;
+    return `<div class="score-dot ${cls}" title="${tooltip}">${sym}</div>`;
+  }).join('');
+}
+
+// ===== BOLLINGER GAUGE =====
+function renderBollingerGauge(analisis) {
+  const marker = document.getElementById('bbGaugeMarker');
+  if (!marker || !analisis.bollinger) return;
+  const { lower, middle, upper } = analisis.bollinger;
+  const pct = Math.min(100, Math.max(0, ((analisis.precio - lower) / (upper - lower)) * 100));
+  marker.style.left = pct.toFixed(1) + '%';
+  const low  = document.getElementById('bbGaugeLow');
+  const mid  = document.getElementById('bbGaugeMid');
+  const high = document.getElementById('bbGaugeHigh');
+  if (low)  low.textContent  = fmtCLP(lower);
+  if (mid)  mid.textContent  = fmtCLP(middle);
+  if (high) high.textContent = fmtCLP(upper);
+}
+
+// ===== TINTES DE INDICADORES =====
+function aplicarTintes(analisis) {
+  function tint(id, estado) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('bull', 'bear');
+    if (estado === 'bull') el.classList.add('bull');
+    else if (estado === 'bear') el.classList.add('bear');
   }
-  const minutosEnHora = m < 30 ? 30 : 60;
-  const sigMin = new Date(ahora);
-  sigMin.setMinutes(minutosEnHora, 0, 0);
-  return sigMin;
+
+  const precio = analisis.precio;
+  tint('card-sma7',  precio > analisis.sma7  ? 'bull' : precio < analisis.sma7  ? 'bear' : '');
+  tint('card-sma30', precio > analisis.sma30 ? 'bull' : precio < analisis.sma30 ? 'bear' : '');
+  // EMA12 > EMA26 = cruce alcista
+  tint('card-ema12', analisis.ema12 > analisis.ema26 ? 'bull' : analisis.ema12 < analisis.ema26 ? 'bear' : '');
+  tint('card-ema26', analisis.ema12 > analisis.ema26 ? 'bull' : analisis.ema12 < analisis.ema26 ? 'bear' : '');
+  // RSI
+  tint('card-rsi',  analisis.estadoRSI === 'sobrevendido' ? 'bull' : analisis.estadoRSI === 'sobrecomprado' ? 'bear' : '');
+  // Estocástico
+  const esto = analisis.estocastico;
+  tint('card-esto', esto?.estado === 'sobrevendido' ? 'bull' : esto?.estado === 'sobrecomprado' ? 'bear' : '');
+  // MACD
+  if (analisis.macd) {
+    tint('card-macd', analisis.macd.macd > analisis.macd.signal ? 'bull' : 'bear');
+  }
+}
+
+// ===== COUNTDOWN =====
+// El cron del servidor corre cada 30 min, L-V 9:00-18:30 hora de Chile
+function segundosParaProximaActualizacion() {
+  const ahora = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Santiago' }));
+  const dia = ahora.getDay();
+  const h = ahora.getHours(), m = ahora.getMinutes();
+  if (dia === 0 || dia === 6 || h < 9 || h > 18 || (h === 18 && m >= 30)) return null;
+  const prox = new Date(ahora);
+  prox.setMinutes(m < 30 ? 30 : 60, 0, 0);
+  return Math.max(0, Math.floor((prox - ahora) / 1000));
 }
 
 function actualizarCountdown() {
   const el = document.getElementById('countdown');
   if (!el) return;
-  const prox = calcularProximaActualizacion();
-  if (!prox) { el.textContent = '⟳ Fuera de horario'; return; }
-  const diff = Math.max(0, Math.floor((prox - Date.now()) / 1000));
+  const diff = segundosParaProximaActualizacion();
+  if (diff === null) { el.textContent = '⟳ Fuera de horario'; return; }
   const mm = String(Math.floor(diff / 60)).padStart(2, '0');
   const ss = String(diff % 60).padStart(2, '0');
   el.textContent = `⟳ ${mm}:${ss}`;
@@ -117,10 +199,6 @@ function renderGraficoRSI(historial, rsiArr) {
     },
     options: {
       ...chartOptions(v => v.toFixed(1)),
-      plugins: {
-        ...chartOptions().plugins,
-        annotation: undefined,
-      },
       scales: {
         x: { ticks: { color: '#6b7280', font: { size: 9 }, maxTicksLimit: 8 }, grid: { color: 'rgba(42,47,66,0.5)' } },
         y: {
@@ -199,6 +277,12 @@ function renderTablaHistorial(historial) {
 function renderDatos(data) {
   const { valorActual, historial, analisis } = data;
 
+  // Ocultar skeleton en primera carga
+  if (primeraCarga) ocultarSkeleton();
+
+  // Flash de precio
+  flashPrecio(valorActual);
+
   // Precio
   document.getElementById('precioActual').textContent = fmtCLP(valorActual);
 
@@ -217,13 +301,14 @@ function renderDatos(data) {
   const fechaHoy = historial.length ? historial[historial.length - 1].fecha : '—';
   document.getElementById('ultimaFecha').textContent = `Actualizado: ${fechaHoy}`;
 
-  // Señal
+  // Señal + score dots
   document.getElementById('senalEmoji').textContent = analisis.emoji || '🟡';
   const senalEl = document.getElementById('senalTexto');
   senalEl.textContent = analisis.senal;
   senalEl.className = 'senal-texto ' + analisis.senal;
   document.getElementById('senalScore').textContent =
     analisis.score != null ? `Score: ${analisis.score}/${analisis.totalIndicadores} indicadores` : '';
+  renderScoreDots(analisis.votos);
   document.getElementById('senalRazon').textContent = analisis.razon;
 
   // Medias móviles
@@ -271,6 +356,7 @@ function renderDatos(data) {
       p <= bb.lower * 1.005 ? '📉 Precio en banda inferior — posible sobreventa' :
       p > bb.middle         ? '📈 Precio en mitad superior de las bandas' :
                               '📊 Precio en mitad inferior de las bandas';
+    renderBollingerGauge(analisis);
   }
 
   // Niveles
@@ -289,6 +375,9 @@ function renderDatos(data) {
   setVarEl('var7d',  analisis.variacion7d);
   setVarEl('var30d', analisis.variacion30d);
 
+  // Tintes en tarjetas de indicadores
+  aplicarTintes(analisis);
+
   // Gráficos
   renderGrafico(historial);
   if (analisis.rsiArray) renderGraficoRSI(historial, analisis.rsiArray);
@@ -305,7 +394,7 @@ function conectarSSE() {
   };
   es.onerror = () => {
     es.close();
-    setTimeout(conectarSSE, 10000); // reconectar en 10s si falla
+    setTimeout(conectarSSE, 10000);
   };
 }
 
@@ -313,13 +402,18 @@ function conectarSSE() {
 async function cargarDatos() {
   const btn = document.getElementById('btnActualizar');
   btn.classList.add('loading');
-  btn.textContent = '⟳ Cargando...';
+  if (primeraCarga) mostrarSkeleton();
   try {
     const res = await fetch(`${BASE}/api/dolar`);
     if (!res.ok) throw new Error();
     renderDatos(await res.json());
-  } catch (e) { console.error('Error cargando datos:', e); }
-  finally { btn.classList.remove('loading'); btn.textContent = '⟳ Actualizar'; }
+  } catch (e) {
+    console.error('Error cargando datos:', e);
+    if (primeraCarga) ocultarSkeleton();
+  } finally {
+    btn.classList.remove('loading');
+    btn.innerHTML = '⟳<span class="btn-text"> Actualizar</span>';
+  }
 }
 
 async function cargarSenales() {
@@ -329,19 +423,34 @@ async function cargarSenales() {
   } catch {}
 }
 
+function pedirActualizacion() {
+  return fetch(`${BASE}/api/actualizar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-update-token': localStorage.getItem('updateToken') || '' }
+  });
+}
+
 document.getElementById('btnActualizar').addEventListener('click', async () => {
   const btn = document.getElementById('btnActualizar');
   btn.classList.add('loading');
-  btn.textContent = '⟳ Actualizando...';
+  btn.innerHTML = '⟳<span class="btn-text"> Actualizando...</span>';
   try {
-    await fetch(`${BASE}/api/actualizar`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-update-token': window.UPDATE_TOKEN || '' }
-    });
+    let res = await pedirActualizacion();
+    if (res.status === 401) {
+      const token = prompt('Este servidor requiere un token para actualizar manualmente:');
+      if (token) {
+        localStorage.setItem('updateToken', token.trim());
+        res = await pedirActualizacion();
+        if (res.status === 401) localStorage.removeItem('updateToken');
+      }
+    }
     await cargarDatos();
     await cargarSenales();
   } catch (e) { console.error(e); }
-  finally { btn.classList.remove('loading'); btn.textContent = '⟳ Actualizar'; }
+  finally {
+    btn.classList.remove('loading');
+    btn.innerHTML = '⟳<span class="btn-text"> Actualizar</span>';
+  }
 });
 
 // ===== PWA + NOTIFICACIONES PUSH =====
@@ -363,33 +472,27 @@ async function actualizarBtnNotif(sw) {
 
 async function toggleNotificaciones(sw) {
   const existing = await sw.pushManager.getSubscription();
-
   if (existing) {
     await existing.unsubscribe();
     btnNotif.textContent = '🔔';
     btnNotif.title = 'Activar notificaciones';
     return;
   }
-
   const permiso = await Notification.requestPermission();
   if (permiso !== 'granted') { alert('Permiso denegado para notificaciones.'); return; }
-
   try {
     const res = await fetch(`${BASE}/api/push/vapid-key`);
     const { publicKey } = await res.json();
     if (!publicKey) { alert('El servidor no tiene notificaciones configuradas.'); return; }
-
     const sub = await sw.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(publicKey)
     });
-
     await fetch(`${BASE}/api/push/subscribe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(sub)
     });
-
     btnNotif.textContent = '🔕';
     btnNotif.title = 'Desactivar notificaciones';
     alert('✅ Notificaciones activadas. Recibirás alertas cuando el dólar cambie.');
@@ -401,7 +504,6 @@ async function toggleNotificaciones(sw) {
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').then(async reg => {
-    // Esperar a que el SW esté activo
     const sw = reg.active || await new Promise(r => {
       reg.addEventListener('updatefound', () => {
         reg.installing.addEventListener('statechange', e => {
@@ -410,7 +512,6 @@ if ('serviceWorker' in navigator) {
       });
       if (reg.active) r(reg.active);
     });
-
     await actualizarBtnNotif(reg);
     btnNotif.addEventListener('click', () => toggleNotificaciones(reg));
   }).catch(() => { btnNotif.style.display = 'none'; });

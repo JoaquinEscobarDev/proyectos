@@ -347,6 +347,104 @@ footer {
 footer p { font-size: 0.62rem; color: var(--text-muted); line-height: 1.6; }
 footer a { color: var(--accent); text-decoration: none; }
 
+/* ===== SKELETON LOADING ===== */
+@keyframes skeletonPulse { 0%,100% { opacity:.3; } 50% { opacity:.65; } }
+.skel {
+  background: var(--bg3);
+  border-radius: 6px;
+  animation: skeletonPulse 1.4s ease-in-out infinite;
+}
+.skel-precio { height: 44px; width: 60%; margin: 6px auto 10px; }
+.skel-sub    { height: 13px; width: 48%; margin: 0 auto 6px; }
+.skel-sub2   { height: 11px; width: 32%; margin: 0 auto; }
+#precioSkel  { padding: 4px 0 2px; }
+
+/* ===== FLASH DE PRECIO ===== */
+@keyframes flashVerde {
+  0%   { color: var(--accent); }
+  20%  { color: var(--green); text-shadow: 0 0 14px rgba(0,230,118,.55); }
+  100% { color: var(--accent); text-shadow: none; }
+}
+@keyframes flashRojo {
+  0%   { color: var(--accent); }
+  20%  { color: var(--red); text-shadow: 0 0 14px rgba(255,23,68,.55); }
+  100% { color: var(--accent); text-shadow: none; }
+}
+.precio-valor.flash-up   { animation: flashVerde 2s ease-out forwards; }
+.precio-valor.flash-down { animation: flashRojo  2s ease-out forwards; }
+
+/* ===== SCORE DOTS ===== */
+.score-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 6px 0 8px;
+  flex-wrap: wrap;
+}
+.score-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: default;
+  transition: transform .15s;
+}
+.score-dot:hover { transform: scale(1.15); }
+.score-dot-buy     { background: var(--green); color: #071a09; }
+.score-dot-sell    { background: var(--red); color: #fff; }
+.score-dot-neutral { background: var(--bg3); color: var(--text-muted); border: 1px solid var(--border); }
+
+/* ===== BOLLINGER GAUGE ===== */
+.bb-gauge {
+  position: relative;
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(to right,
+    rgba(255,23,68,.35) 0%,
+    rgba(255,214,0,.25) 30%,
+    rgba(0,230,118,.3) 50%,
+    rgba(255,214,0,.25) 70%,
+    rgba(255,23,68,.35) 100%
+  );
+  margin: 10px 0 5px;
+}
+.bb-gauge-marker {
+  position: absolute;
+  top: -5px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2.5px solid var(--bg2);
+  transform: translateX(-50%);
+  transition: left .5s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 6px rgba(0,229,255,.4);
+}
+.bb-gauge-limits {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+/* ===== TINTES DE INDICADORES ===== */
+.card-indicador.bull {
+  background: rgba(0,230,118,.07);
+  border-color: rgba(0,230,118,.28);
+}
+.card-indicador.bull .ind-valor { color: var(--green); }
+
+.card-indicador.bear {
+  background: rgba(255,23,68,.07);
+  border-color: rgba(255,23,68,.28);
+}
+.card-indicador.bear .ind-valor { color: var(--red); }
+
 /* ===== RESPONSIVE — tablet y desktop ===== */
 @media (min-width: 480px) {
   .precio-valor { font-size: 3.4rem; }

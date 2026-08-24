@@ -188,7 +188,7 @@ function generarSenal({ precio, rsi, tendencia, macd, bollinger, momentum, estoc
     razon = `${dir}. Se recomienda esperar confirmación.`;
   }
 
-  return { senal, emoji, razon, score, totalIndicadores: total };
+  return { senal, emoji, razon, score, totalIndicadores: total, votos };
 }
 
 // --- RSI array para el gráfico ---
@@ -232,7 +232,7 @@ function analizar(historial) {
 
   const r = v => v !== null ? parseFloat(v.toFixed(2)) : null;
 
-  const { senal, emoji, razon, score, totalIndicadores } = generarSenal({
+  const { senal, emoji, razon, score, totalIndicadores, votos } = generarSenal({
     precio, rsi, tendencia, macd, bollinger, momentum, estocastico
   });
 
@@ -262,6 +262,7 @@ function analizar(historial) {
     razon,
     score,
     totalIndicadores,
+    votos,
   };
 }
 
