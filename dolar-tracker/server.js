@@ -102,7 +102,7 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 
 // ===== CARTAS — acceso con clave (solo se guarda el hash, nunca la clave) =====
-const CARTAS_CLAVE_HASH = 'e4540a7c8404b1becfed2f0ca242bec6cfd6096a8d944555145aafe5eab77c69';
+const CARTAS_CLAVE_HASH = '821d0aee86a94169c4862faf0fccc6293026869ba8bf529c4d2f688df2f31092';
 const hashClave = c => crypto.createHash('sha256').update(String(c)).digest('hex');
 
 function tieneAcceso(req) {
