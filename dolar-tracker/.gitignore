@@ -1,2 +1,7 @@
 node_modules/
 .env
+.env.local
+.env.*.local
+
+# Datos de runtime (se generan solos; subscriptions contiene datos de usuarios)
+data/*.json

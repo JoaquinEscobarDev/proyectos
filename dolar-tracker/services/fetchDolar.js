@@ -34,22 +34,32 @@ function httpGet(url) {
   });
 }
 
-async function fetchDolarActual() {
+async function fetchSerieDolar() {
   const json = await httpGet('https://mindicador.cl/api/dolar');
   const serie = json.serie;
   if (!serie || serie.length === 0) throw new Error('mindicador.cl: serie vacía');
-
-  const ultimo = serie[0]; // el más reciente viene primero
-  const valor = parseFloat(parseFloat(ultimo.valor).toFixed(2));
-  const fecha = new Date().toISOString();
-  return { fecha, valor };
+  // La serie viene con el dato más reciente primero; usamos la fecha del dato
+  // (no la de hoy): en fin de semana la serie trae el valor del viernes y
+  // registrarlo con fecha de hoy duplicaría días en el historial
+  return serie.map(p => ({
+    fecha: p.fecha,
+    valor: parseFloat(parseFloat(p.valor).toFixed(2)),
+  }));
 }
 
 async function actualizarHistorial() {
-  const nuevo = await fetchDolarActual();
+  const serie = await fetchSerieDolar();
+  const nuevo = serie[0];
 
-  const historial = leerHistorial();
-  historial.push(nuevo);
+  let historial = leerHistorial();
+  if (historial.length === 0) {
+    // Historial vacío (deploy nuevo): sembrar con toda la serie (~30 días)
+    // para que los indicadores funcionen desde el primer arranque
+    historial = [...serie].reverse();
+    console.log(`[Init] Historial sembrado con ${historial.length} días de mindicador.cl`);
+  } else {
+    historial.push(nuevo);
+  }
 
   const limite = 60 * 24 * 2;
   const recortado = historial.slice(-Math.max(limite, 30));

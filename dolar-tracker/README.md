@@ -14,7 +14,7 @@
 
 | | |
 |---|---|
-| 📡 **Datos en tiempo real** | Precio USD/CLP actualizado cada 30 min vía ExchangeRate-API |
+| 📡 **Datos oficiales** | Dólar observado del Banco Central de Chile vía [mindicador.cl](https://mindicador.cl) (1 valor por día hábil) |
 | 🔄 **SSE (Server-Sent Events)** | El dashboard se actualiza automáticamente sin recargar |
 | 🧮 **7 indicadores técnicos** | RSI, SMA, EMA, MACD, Bollinger Bands, Estocástico, ATR |
 | 🎯 **Señal por puntuación** | Los indicadores votan → COMPRAR / VENDER / ESPERAR |
@@ -58,7 +58,7 @@ git clone https://github.com/JoaquinEscobarDev/proyectos.git
 cd proyectos/dolar-tracker
 npm install
 cp .env.example .env
-# Edita .env con tu API Key de exchangerate-api.com
+# Edita .env (opcional: token de actualización y claves VAPID para push)
 npm start
 ```
 
@@ -70,9 +70,13 @@ Abre [http://localhost:3000](http://localhost:3000)
 
 | Variable | Descripción | Requerida |
 |---|---|---|
-| `EXCHANGE_API_KEY` | Key de [exchangerate-api.com](https://www.exchangerate-api.com) (gratis) | ✅ |
 | `FRONTEND_URL` | URL del frontend para CORS (ej: `https://proyectos.fun`) | En producción |
+| `UPDATE_TOKEN` | Token secreto para `POST /api/actualizar` (sin él, el endpoint queda abierto) | Recomendada |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_EMAIL` | Claves para notificaciones push (`npx web-push generate-vapid-keys`) | Para push |
+| `UMBRAL_CAMBIO` | Cambio en CLP que dispara una notificación push (default: 3) | No |
 | `PORT` | Puerto del servidor (Hostinger lo asigna automáticamente) | No |
+
+> La fuente de datos ([mindicador.cl](https://mindicador.cl)) es gratuita y **no requiere API key**.
 
 ---
 
@@ -89,8 +93,9 @@ dolar-tracker/
 │   ├── senales.json        # Historial de señales (auto)
 │   └── estado.json         # Precio de apertura del día (auto)
 ├── services/
-│   ├── fetchDolar.js       # Consume ExchangeRate-API
-│   └── analisis.js         # Motor técnico (7 indicadores)
+│   ├── fetchDolar.js       # Consume mindicador.cl (Banco Central)
+│   ├── analisis.js         # Motor técnico (7 indicadores)
+│   └── push.js             # Notificaciones push (web-push / VAPID)
 ├── routes/
 │   └── api.js              # GET /api/dolar, /api/stream (SSE), /api/senales
 └── public/
@@ -122,5 +127,5 @@ dolar-tracker/
 ---
 
 <div align="center">
-  Hecho con ☕ · Datos por <a href="https://www.exchangerate-api.com">ExchangeRate-API</a>
+  Hecho con ☕ · Datos por <a href="https://mindicador.cl">mindicador.cl</a> (Banco Central de Chile)
 </div>

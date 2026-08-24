@@ -1,6 +1,5 @@
-const CACHE = 'usdclp-v2';
-const STATIC = ['/', '/style.css', '/app.js', '/config.js', '/icon-192.png',
-  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'];
+const CACHE = 'usdclp-v3';
+const STATIC = ['/', '/style.css', '/app.js', '/config.js', '/icon-192.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC)).catch(() => {}));
@@ -14,15 +13,26 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
+// Network-first: siempre intenta la red (así los deploys llegan a los clientes)
+// y cae al cache solo sin conexión. No intercepta /api/ ni recursos externos (CDN)
 self.addEventListener('fetch', e => {
-  if (e.request.url.includes('/api/')) return;
+  const url = new URL(e.request.url);
+  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return;
   e.respondWith(
-    caches.match(e.request).then(cached =>
-      cached || fetch(e.request).then(res => {
-        if (res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()));
-        return res;
+    fetch(e.request).then(res => {
+      if (res.ok) {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+      }
+      return res;
+    }).catch(() =>
+      caches.match(e.request).then(cached => {
+        if (cached) return cached;
+        // Solo la navegación cae al index; scripts/estilos deben fallar limpio
+        if (e.request.mode === 'navigate') return caches.match('/');
+        return Response.error();
       })
-    ).catch(() => caches.match('/'))
+    )
   );
 });
 

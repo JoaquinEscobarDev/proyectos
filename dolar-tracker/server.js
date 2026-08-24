@@ -48,7 +48,8 @@ function actualizarPrecioApertura(precio) {
   const hoy = new Date().toISOString().slice(0, 10);
   const estado = leerEstado();
   if (estado.fechaApertura !== hoy) {
-    guardarEstado({ precioApertura: precio, fechaApertura: hoy });
+    // Preservar ultimoPrecio/ultimaSenal para no perder el push del primer ciclo del día
+    guardarEstado({ ...estado, precioApertura: precio, fechaApertura: hoy });
   }
 }
 
@@ -59,7 +60,7 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc:  ["'self'", "https://cdn.jsdelivr.net"],
       styleSrc:   ["'self'", "'unsafe-inline'"],
-      connectSrc: ["'self'", "https://api.exchangerate-api.com"],
+      connectSrc: ["'self'"],
       imgSrc:     ["'self'", "data:"],
     }
   }
@@ -93,8 +94,9 @@ const actualizarLimiter = rateLimit({
 
 app.use(express.json({ limit: '10kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/api', apiLimiter, apiRouter);
+// El limiter estricto debe montarse ANTES del router para que se ejecute
 app.use('/api/actualizar', actualizarLimiter);
+app.use('/api', apiLimiter, apiRouter);
 
 async function cicloActualizacion() {
   try {
@@ -134,7 +136,7 @@ async function cicloActualizacion() {
   }
 }
 
-// Cada 30 min, Lun-Vie 9:00-18:00 hora Chile
+// Cada 30 min, Lun-Vie 9:00-18:30 hora Chile
 cron.schedule('*/30 9-18 * * 1-5', cicloActualizacion, { timezone: 'America/Santiago' });
 
 app.listen(PORT, async () => {
