@@ -20,9 +20,10 @@ const PORT = process.env.PORT || 3000;
 const SENALES_PATH  = path.join(__dirname, 'data/senales.json');
 const ESTADO_PATH   = path.join(__dirname, 'data/estado.json');
 
-// Carpetas hermanas del monorepo — este servidor es el hub de proyectos.fun
-const HOME_DIR   = path.join(__dirname, '../home');
-const CARTAS_DIR = path.join(__dirname, '../cartas');
+// Subcarpetas de la app — este servidor es el hub de proyectos.fun
+// (Hostinger solo despliega dolar-tracker/, así que todo vive aquí adentro)
+const HOME_DIR   = path.join(__dirname, 'home');
+const CARTAS_DIR = path.join(__dirname, 'cartas');
 
 function leerSenales() {
   try { return JSON.parse(fs.readFileSync(SENALES_PATH, 'utf-8')); } catch { return []; }
