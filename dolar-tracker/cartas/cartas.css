@@ -2,6 +2,7 @@
 :root {
   --bg: #12080d; --bg2: #1d1016; --borde: #3a2230;
   --texto: #f5e9ee; --texto2: #9a7f8b; --rosa: #ff6d9d; --dorado: #ffd9a0;
+  --papel: #fff7f9; --sobre1: #3a1d2c; --sobre2: #2a1520; --sobre3: #4a2739;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -12,31 +13,206 @@ body {
   display: flex;
   flex-direction: column;
 }
-main { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; padding: 3.5rem 1.25rem 2rem; }
 
-.hero { text-align: center; margin-bottom: 2.5rem; animation: aparecer .8s ease both; }
-.hero .emoji { font-size: 3.4rem; display: inline-block; animation: latido 2.4s ease-in-out infinite; }
-.hero h1 { font-size: 2rem; margin-top: .8rem; }
-.hero .sub { color: var(--texto2); margin-top: .5rem; line-height: 1.5; }
+/* El contenido espera escondido hasta que el sobre se abre */
+main { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; padding: 3rem 1.25rem 2rem; visibility: hidden; opacity: 0; }
+body.abierto main { visibility: visible; opacity: 1; transition: opacity .6s ease; }
 
+/* ===== SOBRE ===== */
+#sobreOverlay {
+  position: fixed; inset: 0; z-index: 50;
+  display: grid; place-items: center;
+  background: radial-gradient(ellipse at 50% 30%, #241019 0%, var(--bg) 65%);
+  cursor: pointer;
+  transition: opacity .7s ease;
+}
+#sobreOverlay.desvanecer { opacity: 0; pointer-events: none; }
+
+.sobre-escena { text-align: center; animation: aparecer .8s ease both; }
+
+.sobre3d { position: relative; width: 300px; height: 200px; margin: 0 auto; perspective: 900px; }
+
+.sobre-cuerpo {
+  position: absolute; inset: 0;
+  background: var(--sobre2);
+  border: 1px solid var(--sobre3);
+  border-radius: 10px;
+}
+.sobre-carta-interna {
+  position: absolute; left: 16px; right: 16px; top: 14px; bottom: 14px;
+  background: var(--papel);
+  border-radius: 6px;
+  display: grid; place-items: center;
+  color: #b8365f; font-weight: 700; font-size: 1.15rem;
+  z-index: 1;
+  transition: transform .9s cubic-bezier(.22, .9, .35, 1) .4s;
+}
+.sobre-frente {
+  position: absolute; inset: 0; z-index: 2;
+  background: linear-gradient(180deg, var(--sobre1) 0%, var(--sobre2) 100%);
+  border-radius: 10px;
+  clip-path: polygon(0 22%, 50% 62%, 100% 22%, 100% 100%, 0 100%);
+  border: 1px solid var(--sobre3);
+}
+.sobre-tapa {
+  position: absolute; inset: 0; z-index: 3;
+  background: linear-gradient(180deg, var(--sobre3) 0%, var(--sobre1) 62%);
+  clip-path: polygon(0 0, 100% 0, 100% 23%, 50% 63%, 0 23%);
+  border-radius: 10px 10px 0 0;
+  transform-origin: top center;
+  transition: transform .7s ease, z-index 0s .7s;
+}
+.sobre-sello {
+  position: absolute; top: 100px; left: 50%; transform: translateX(-50%); z-index: 4;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff8fb3, var(--rosa) 70%);
+  box-shadow: 0 3px 10px rgba(255, 109, 157, .45);
+  display: grid; place-items: center;
+  color: #fff; font-size: 1.3rem;
+  transition: opacity .4s ease, transform .4s ease;
+  animation: latido 2.2s ease-in-out infinite;
+}
+.sobre-hint { margin-top: 1.6rem; color: var(--texto2); font-size: .9rem; animation: parpadeo 2.2s ease-in-out infinite; }
+
+/* Sobre abriéndose */
+#sobreOverlay.abriendo .sobre-tapa { transform: rotateX(180deg); z-index: 0; }
+#sobreOverlay.abriendo .sobre-sello { opacity: 0; transform: translateX(-50%) scale(.6); animation: none; }
+#sobreOverlay.abriendo .sobre-carta-interna { transform: translateY(-120px); z-index: 2; }
+#sobreOverlay.abriendo .sobre-hint { opacity: 0; }
+
+/* ===== HERO + CONTADOR ===== */
+.hero { text-align: center; margin-bottom: 2.2rem; }
+body.abierto .hero { animation: aparecer .7s ease .1s both; }
+.hero .emoji { font-size: 3rem; display: inline-block; animation: latido 2.4s ease-in-out infinite; }
+.hero h1 { font-size: 1.9rem; margin-top: .6rem; }
+.desde { color: var(--texto2); margin-top: .4rem; font-size: .92rem; }
+
+.contador { margin-top: 1.1rem; display: flex; align-items: baseline; justify-content: center; gap: .55rem; }
+.contador-dias {
+  font-family: 'Courier New', monospace;
+  font-size: clamp(3rem, 12vw, 4.2rem);
+  font-weight: 700;
+  color: var(--rosa);
+  text-shadow: 0 0 26px rgba(255, 109, 157, .35);
+  line-height: 1;
+}
+.contador-label { color: var(--texto2); font-size: 1.1rem; }
+.contador-hms { font-family: 'Courier New', monospace; color: var(--dorado); margin-top: .5rem; font-size: 1rem; letter-spacing: 1px; }
+
+/* ===== LISTA DE CARTAS ===== */
 .cartas-lista { display: flex; flex-direction: column; gap: 1.2rem; }
+body.abierto .carta { animation: aparecer .7s ease .3s both; }
 
 .carta {
   background: var(--bg2);
   border: 1px solid var(--borde);
   border-radius: 16px;
-  padding: 1.6rem 1.5rem;
-  animation: aparecer .8s ease .2s both;
+  overflow: hidden;
 }
-.carta-sello { font-size: 1.6rem; color: var(--dorado); margin-bottom: .6rem; }
-.carta h2 { font-size: 1.2rem; margin-bottom: .5rem; }
-.carta p { color: var(--texto2); line-height: 1.6; font-size: .95rem; }
-.carta-proximamente { border-style: dashed; }
+.carta-toggle {
+  width: 100%;
+  background: none; border: none; cursor: pointer;
+  color: var(--texto);
+  font-family: inherit;
+  text-align: center;
+  padding: 1.5rem 1.4rem;
+  display: flex; flex-direction: column; gap: .45rem; align-items: center;
+  transition: background .25s;
+}
+.carta-toggle:hover { background: rgba(255, 109, 157, .05); }
+.carta-num { color: var(--texto2); font-size: .8rem; letter-spacing: 1px; text-transform: uppercase; }
+.carta-toggle h2 { font-size: 1.35rem; }
+.carta-abrir { color: var(--rosa); font-size: .85rem; font-family: 'Courier New', monospace; }
+.carta.abierta .carta-abrir { display: none; }
 
+.carta-contenido {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 1s ease;
+}
+.carta.abierta .carta-contenido { max-height: 2200px; }
+
+/* ===== RAMO DE TULIPANES ===== */
+.ramo-wrap { position: relative; height: 360px; margin: 0 auto; width: min(100%, 420px); }
+.ramo { position: absolute; inset: 0; }
+
+.tulipan {
+  position: absolute;
+  bottom: 96px;
+  left: 50%;
+  width: 54px; height: 210px;
+  transform: translateX(-50%) rotate(var(--ang)) scale(var(--escala));
+  transform-origin: bottom center;
+  z-index: 1;
+}
+.carta.abierta .tulipan {
+  animation: mecer var(--sway) ease-in-out calc(var(--delay) + 1s) infinite alternate;
+}
+.tulipan svg { width: 100%; height: 100%; display: block; transform: scaleY(0); transform-origin: bottom center; }
+.carta.abierta .tulipan svg { animation: brotar .9s cubic-bezier(.34, 1.3, .5, 1) var(--delay) both; }
+
+/* Envoltorio de papel + listón */
+.envoltorio {
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 168px; height: 118px; z-index: 2;
+  background: linear-gradient(160deg, #f7c6d4 0%, #eda9be 55%, #e294ad 100%);
+  clip-path: polygon(10% 0, 90% 0, 70% 100%, 30% 100%);
+}
+.liston {
+  position: absolute; bottom: 84px; left: 50%; transform: translateX(-50%);
+  width: 150px; height: 16px; z-index: 3;
+  background: linear-gradient(180deg, #ff8fb3, #e05c86);
+  border-radius: 3px;
+}
+.liston::after {
+  content: '❀';
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -54%);
+  color: #fff0f5; font-size: .95rem;
+}
+
+/* ===== TEXTO DE LA CARTA ===== */
+.carta-texto {
+  background: var(--papel);
+  color: #4a2436;
+  margin: 0 1.2rem 1.4rem;
+  padding: 1.8rem 1.6rem;
+  border-radius: 10px;
+  line-height: 1.75;
+  font-size: .97rem;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .35);
+}
+.carta-texto p + p { margin-top: .95rem; }
+.carta-texto .firma { text-align: right; font-style: italic; color: #b8365f; margin-top: 1.3rem; }
+
+/* Carta próximamente */
+.carta-proximamente { border-style: dashed; }
+.carta-espera { padding: 1.5rem; text-align: center; }
+.carta-sello { font-size: 1.5rem; color: var(--dorado); display: block; margin-bottom: .4rem; }
+.carta-espera p { color: var(--texto2); font-size: .92rem; }
+
+/* ===== FOOTER ===== */
 footer { text-align: center; padding: 1.5rem 1rem 2rem; }
 footer a { color: var(--texto2); font-size: .85rem; text-decoration: none; }
 footer a:hover { color: var(--rosa); }
 
+/* ===== ANIMACIONES ===== */
 @keyframes aparecer { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes latido { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
-@media (prefers-reduced-motion: reduce) { .hero, .carta, .hero .emoji { animation: none; } }
+@keyframes parpadeo { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+@keyframes brotar { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes mecer {
+  from { transform: translateX(-50%) rotate(calc(var(--ang) - 1.6deg)) scale(var(--escala)); }
+  to   { transform: translateX(-50%) rotate(calc(var(--ang) + 1.6deg)) scale(var(--escala)); }
+}
+
+@media (max-width: 430px) {
+  .ramo-wrap { height: 320px; }
+  .tulipan { bottom: 86px; height: 185px; width: 48px; }
+  .envoltorio { width: 148px; height: 104px; }
+  .liston { bottom: 74px; width: 132px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero .emoji, .sobre-sello, .sobre-hint, .carta.abierta .tulipan { animation: none; }
+  .carta.abierta .tulipan svg { animation: none; transform: scaleY(1); }
+}

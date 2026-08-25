@@ -6,21 +6,77 @@
   <title>Cartas para ti 💌</title>
   <meta name="robots" content="noindex" />
   <meta name="theme-color" content="#12080d" />
-  <link rel="stylesheet" href="/cartas/cartas.css?v=1" />
+  <link rel="stylesheet" href="/cartas/cartas.css?v=2" />
 </head>
 <body>
+
+  <!-- ===== SOBRE (se abre al tocarlo) ===== -->
+  <div id="sobreOverlay">
+    <div class="sobre-escena">
+      <div class="sobre3d">
+        <div class="sobre-carta-interna">Para Noe 💌</div>
+        <div class="sobre-cuerpo"></div>
+        <div class="sobre-frente"></div>
+        <div class="sobre-tapa"></div>
+        <div class="sobre-sello">✿</div>
+      </div>
+      <p class="sobre-hint">toca el sobre para abrirlo</p>
+    </div>
+  </div>
+
+  <!-- ===== CONTENIDO ===== -->
   <main>
     <header class="hero">
       <span class="emoji">💌</span>
       <h1>Hola, Noe</h1>
-      <p class="sub">Este es tu rincón. Pronto habrá cartas esperándote aquí…</p>
+      <p class="desde">Juntos desde el 15 de enero de 2026</p>
+      <div class="contador">
+        <span id="contadorDias" class="contador-dias">—</span>
+        <span class="contador-label">días</span>
+      </div>
+      <div id="contadorHms" class="contador-hms">— h — min — s</div>
     </header>
 
     <section class="cartas-lista">
+      <article class="carta" id="carta1">
+        <button class="carta-toggle" type="button">
+          <span class="carta-num">Carta N.º 1 · 24 de agosto de 2026</span>
+          <h2>Un ramo para ti 🌷</h2>
+          <span class="carta-abrir">tocar para abrir</span>
+        </button>
+
+        <div class="carta-contenido">
+          <div class="ramo-wrap">
+            <div id="ramo" class="ramo"></div>
+            <div class="envoltorio"></div>
+            <div class="liston"></div>
+          </div>
+
+          <div class="carta-texto">
+            <p>Noe:</p>
+            <p>Estuve mucho rato mirando esta página en blanco sin saber cómo
+            partir. Después entendí que no había que buscarle tanto: las cosas
+            más ciertas se dicen simple.</p>
+            <p>Este rincón lo construí para ti. Aquí te voy a ir dejando cartas,
+            y esta es la primera de muchas.</p>
+            <p>Te dejo veinte tulipanes. Estos no se van a marchitar nunca,
+            porque los planté donde el tiempo está de nuestro lado — el mismo
+            tiempo que corre allá arriba, contando cada segundo desde el 15 de
+            enero.</p>
+            <p>Van a llegar más cartas. Algunas largas, otras de tres líneas.
+            Algunas en fechas importantes y otras un martes cualquiera, porque
+            también quiero celebrar los martes cualquiera contigo.</p>
+            <p>Gracias por lo que somos y por lo que estamos construyendo.</p>
+            <p class="firma">Te quiero.<br />— J.</p>
+          </div>
+        </div>
+      </article>
+
       <article class="carta carta-proximamente">
-        <div class="carta-sello">✿</div>
-        <h2>La primera carta</h2>
-        <p>Se está escribiendo con calma, porque las cosas importantes no se apuran.</p>
+        <div class="carta-espera">
+          <span class="carta-sello">✿</span>
+          <p>La próxima carta ya se está escribiendo…</p>
+        </div>
       </article>
     </section>
   </main>
@@ -28,5 +84,10 @@
   <footer>
     <a href="/">← proyectos.fun</a>
   </footer>
+
+  <noscript>
+    <style>#sobreOverlay { display: none; } main { visibility: visible; opacity: 1; }</style>
+  </noscript>
+  <script src="/cartas/cartas.js?v=1"></script>
 </body>
 </html>
