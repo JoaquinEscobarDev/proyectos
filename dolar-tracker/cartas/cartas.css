@@ -245,6 +245,7 @@ body.abierto .carta { animation: aparecer .7s ease .3s both; }
 .libro:active { cursor: grabbing; }
 .libro-pista {
   display: flex;
+  align-items: flex-start;
   width: 200%;
   transition: transform .55s cubic-bezier(.22, .9, .3, 1);
 }
@@ -289,7 +290,7 @@ body.abierto .carta { animation: aparecer .7s ease .3s both; }
 .libro-hint.oculto { opacity: 0; }
 
 /* ===== GALERÍA DE FOTOS ===== */
-.galeria { margin: 1.1rem 1.2rem; }
+.galeria { margin: 0 1.2rem 1.1rem; }
 .galeria-fotos {
   position: relative;
   border-radius: 12px;

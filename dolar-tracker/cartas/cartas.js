@@ -152,11 +152,21 @@ const pista = document.getElementById('libroPista');
 let hojaActual = 0;
 const TOTAL_HOJAS = 2;
 
+// El contenedor se ajusta a la altura real de la hoja visible (si no, al
+// estirar flex por la hoja más alta queda un espacio vacío en la más corta)
+function ajustarAlturaLibro(animar = true) {
+  const hoja = pista.children[hojaActual];
+  if (!hoja) return;
+  libro.style.transition = animar ? 'height .55s cubic-bezier(.22,.9,.3,1)' : 'none';
+  libro.style.height = hoja.scrollHeight + 'px';
+}
+
 function irAHoja(n, animado = true) {
   hojaActual = Math.max(0, Math.min(TOTAL_HOJAS - 1, n));
   libro.scrollLeft = 0; // el navegador puede auto-scrollear el overflow:hidden
   pista.style.transition = animado ? 'transform .55s cubic-bezier(.22,.9,.3,1)' : 'none';
   pista.style.transform = `translateX(${-hojaActual * 50}%)`;
+  ajustarAlturaLibro(animado);
   document.querySelectorAll('.hdot').forEach((d, i) => d.classList.toggle('activo', i === hojaActual));
   const hint = document.getElementById('libroHint');
   if (hint && hojaActual > 0) hint.classList.add('oculto');
@@ -166,6 +176,9 @@ if (libro) {
   document.getElementById('hojaPrev').addEventListener('click', () => irAHoja(hojaActual - 1));
   document.getElementById('hojaNext').addEventListener('click', () => irAHoja(hojaActual + 1));
   libro.addEventListener('scroll', () => { if (libro.scrollLeft !== 0) libro.scrollLeft = 0; });
+  window.addEventListener('resize', () => {
+    if (document.getElementById('carta2')?.classList.contains('abierta')) ajustarAlturaLibro(false);
+  });
 
   // Arrastre con el dedo / mouse
   let arrastrando = false, inicioX = 0, deltaX = 0;
@@ -211,6 +224,8 @@ function mostrarFoto(n) {
   document.querySelectorAll('.gdot').forEach((d, i) =>
     d.classList.toggle('activo', i === fotoActual));
   document.getElementById('galeriaCap').textContent = FOTOS[fotoActual].cap;
+  // La leyenda puede cambiar de 1 a 2 líneas — mantener la altura sincronizada
+  if (hojaActual === 1) ajustarAlturaLibro();
 }
 
 function crearGaleria() {
@@ -244,7 +259,7 @@ document.querySelectorAll('.carta-toggle').forEach(btn => {
     const abierta = carta.classList.toggle('abierta');
     if (abierta) {
       if (carta.id === 'carta1') crearRamo();
-      if (carta.id === 'carta2') { florecer(); crearGaleria(); }
+      if (carta.id === 'carta2') { florecer(); crearGaleria(); ajustarAlturaLibro(false); }
       setTimeout(() => carta.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
     }
   });
