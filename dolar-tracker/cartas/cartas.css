@@ -130,7 +130,7 @@ body.abierto .carta { animation: aparecer .7s ease .3s both; }
   overflow: hidden;
   transition: max-height 1s ease;
 }
-.carta.abierta .carta-contenido { max-height: 2200px; }
+.carta.abierta .carta-contenido { max-height: 2800px; }
 
 /* ===== RAMO DE TULIPANES ===== */
 .ramo-wrap { position: relative; height: 360px; margin: 0 auto; width: min(100%, 420px); }
@@ -239,6 +239,97 @@ body.abierto .carta { animation: aparecer .7s ease .3s both; }
 }
 @keyframes mecerRosa { from { transform: rotate(-1.1deg); } to { transform: rotate(1.1deg); } }
 @keyframes titilar { 0%, 100% { opacity: 0; } 50% { opacity: .85; } }
+
+/* ===== LIBRO DE HOJAS DESLIZABLES (carta 2) ===== */
+.libro { overflow: hidden; touch-action: pan-y; cursor: grab; }
+.libro:active { cursor: grabbing; }
+.libro-pista {
+  display: flex;
+  width: 200%;
+  transition: transform .55s cubic-bezier(.22, .9, .3, 1);
+}
+.hoja { width: 50%; flex: none; user-select: none; }
+.hoja img { -webkit-user-drag: none; }
+
+.libro-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: .2rem 0 .4rem;
+}
+.hoja-flecha {
+  background: none;
+  border: 1px solid var(--borde);
+  border-radius: 50%;
+  width: 38px; height: 38px;
+  color: var(--rosa);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.hoja-flecha:hover { border-color: var(--rosa); background: rgba(255, 109, 157, .08); }
+.hoja-dots { display: flex; gap: .5rem; }
+.hdot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--borde);
+  transition: background .3s, transform .3s;
+}
+.hdot.activo { background: var(--rosa); transform: scale(1.25); }
+.libro-hint {
+  text-align: center;
+  color: var(--texto2);
+  font-size: .82rem;
+  font-family: 'Courier New', monospace;
+  padding-bottom: 1.1rem;
+  animation: parpadeo 2.4s ease-in-out infinite;
+  transition: opacity .5s;
+}
+.libro-hint.oculto { opacity: 0; }
+
+/* ===== GALERÍA DE FOTOS ===== */
+.galeria { margin: 1.1rem 1.2rem; }
+.galeria-fotos {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  max-height: 440px;
+  background: #0d0509;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+  cursor: pointer;
+}
+.galeria-fotos img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.06);
+  transition: opacity 1.1s ease, transform 5s ease;
+}
+.galeria-fotos img.activa {
+  opacity: 1;
+  transform: scale(1);
+}
+.galeria-cap {
+  text-align: center;
+  color: var(--texto2);
+  font-size: .88rem;
+  margin-top: .6rem;
+  font-style: italic;
+  min-height: 1.2em;
+}
+.galeria-dots { display: flex; justify-content: center; gap: .45rem; margin-top: .45rem; }
+.gdot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--borde);
+  cursor: pointer;
+  transition: background .3s, transform .3s;
+}
+.gdot.activo { background: var(--dorado); transform: scale(1.25); }
 
 /* ===== TEXTO DE LA CARTA ===== */
 .carta-texto {

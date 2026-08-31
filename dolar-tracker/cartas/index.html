@@ -6,7 +6,7 @@
   <title>Cartas para ti 💌</title>
   <meta name="robots" content="noindex" />
   <meta name="theme-color" content="#12080d" />
-  <link rel="stylesheet" href="/cartas/cartas.css?v=3" />
+  <link rel="stylesheet" href="/cartas/cartas.css?v=4" />
 </head>
 <body>
 
@@ -46,21 +46,76 @@
         </button>
 
         <div class="carta-contenido">
-          <div id="rosaCanvas" class="rosa-canvas">
-            <svg id="rosaSvg" viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
-          </div>
-          <button id="btnFlorecer" class="btn-florecer" type="button">🌹 verla florecer de nuevo</button>
+          <div class="libro" id="libro2">
+            <div class="libro-pista" id="libroPista">
 
-          <div class="carta-texto">
-            <p>Noe:</p>
-            <p>Vi una flor hecha con código y pensé al tiro en ti. Así que
-            aprendí a dibujarla, trazo a trazo, para dejártela aquí.</p>
-            <p>Mírala florecer. Puede hacerlo todas las veces que quieras:
-            las flores de verdad se marchitan, pero esta es distinta — cada
-            vez que la abras va a volver a nacer para ti.</p>
-            <p>Igual que yo, que vuelvo a elegirte todos los días.</p>
-            <p class="firma">Te amo.<br />— Tu novio 💕</p>
+              <!-- HOJA 1: la rosa -->
+              <div class="hoja">
+                <div id="rosaCanvas" class="rosa-canvas">
+                  <svg id="rosaSvg" viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+                </div>
+                <button id="btnFlorecer" class="btn-florecer" type="button">🌹 verla florecer de nuevo</button>
+
+                <div class="carta-texto">
+                  <p>Noe:</p>
+                  <p>Vi una flor hecha con código y pensé al tiro en ti. Así que
+                  aprendí a dibujarla, trazo a trazo, para dejártela aquí.</p>
+                  <p>Mírala florecer. Puede hacerlo todas las veces que quieras:
+                  las flores de verdad se marchitan, pero esta es distinta — cada
+                  vez que la abras va a volver a nacer para ti.</p>
+                  <p>Igual que yo, que vuelvo a elegirte todos los días.</p>
+                  <p class="firma">Te amo.<br />— Tu novio 💕</p>
+                </div>
+              </div>
+
+              <!-- HOJA 2: nuestra semana -->
+              <div class="hoja">
+                <div class="carta-texto">
+                  <p>Noe:</p>
+                  <p>Esta carta tiene una hoja más, porque esta semana no me
+                  cupo en una sola.</p>
+                  <p>El lunes te quedaste conmigo, y dormir a tu lado sigue
+                  siendo mi forma favorita de terminar el día. El martes,
+                  después del desayuno, jugamos en mi pieza como niños chicos
+                  — metiéndonos el dedo en la nariz, riéndonos hasta que dolía.
+                  Ahí entendí algo: contigo hasta lo más tonto se convierte en
+                  mi recuerdo favorito.</p>
+                  <p>Después salimos: me cortaron el pelo mientras me esperabas,
+                  fuimos al cine, comimos rico y volviste a quedarte conmigo.
+                  Y el miércoles amanecimos juntos y partimos al acuario, a ver
+                  peces, tortugas y tiburones. Yo miré harto rato el agua, pero
+                  igual terminaba mirándote a ti.</p>
+                </div>
+
+                <div class="galeria" id="galeria2">
+                  <div class="galeria-fotos" id="galeriaFotos"></div>
+                  <p class="galeria-cap" id="galeriaCap">&nbsp;</p>
+                  <div class="galeria-dots" id="galeriaDots"></div>
+                </div>
+
+                <div class="carta-texto">
+                  <p>Quiero que entiendas algo, y por eso lo dejo escrito aquí,
+                  donde el tiempo no lo puede borrar: <strong>eres lo más
+                  hermoso que tengo en mi vida</strong>. Te amo demasiado.</p>
+                  <p>Y cada vez que miro tus ojos, empiezan a brillar y me
+                  quedo sin palabras — no existe una forma de decirte todo el
+                  amor que siento por ti. Pero lo voy a intentar igual,
+                  carta por carta.</p>
+                  <p class="firma">Te amo.<br />— Tu novio 💕</p>
+                </div>
+              </div>
+
+            </div>
           </div>
+
+          <div class="libro-nav">
+            <button id="hojaPrev" class="hoja-flecha" type="button" aria-label="Hoja anterior">‹</button>
+            <span class="hoja-dots">
+              <span class="hdot activo"></span><span class="hdot"></span>
+            </span>
+            <button id="hojaNext" class="hoja-flecha" type="button" aria-label="Hoja siguiente">›</button>
+          </div>
+          <p class="libro-hint" id="libroHint">desliza para pasar a la otra hoja →</p>
         </div>
       </article>
 
@@ -114,6 +169,6 @@
   <noscript>
     <style>#sobreOverlay { display: none; } main { visibility: visible; opacity: 1; }</style>
   </noscript>
-  <script src="/cartas/cartas.js?v=2"></script>
+  <script src="/cartas/cartas.js?v=3"></script>
 </body>
 </html>

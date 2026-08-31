@@ -146,6 +146,97 @@ function florecer() {
 const btnFlorecer = document.getElementById('btnFlorecer');
 if (btnFlorecer) btnFlorecer.addEventListener('click', florecer);
 
+// ===== LIBRO — hojas deslizables (carta 2) =====
+const libro = document.getElementById('libro2');
+const pista = document.getElementById('libroPista');
+let hojaActual = 0;
+const TOTAL_HOJAS = 2;
+
+function irAHoja(n, animado = true) {
+  hojaActual = Math.max(0, Math.min(TOTAL_HOJAS - 1, n));
+  libro.scrollLeft = 0; // el navegador puede auto-scrollear el overflow:hidden
+  pista.style.transition = animado ? 'transform .55s cubic-bezier(.22,.9,.3,1)' : 'none';
+  pista.style.transform = `translateX(${-hojaActual * 50}%)`;
+  document.querySelectorAll('.hdot').forEach((d, i) => d.classList.toggle('activo', i === hojaActual));
+  const hint = document.getElementById('libroHint');
+  if (hint && hojaActual > 0) hint.classList.add('oculto');
+}
+
+if (libro) {
+  document.getElementById('hojaPrev').addEventListener('click', () => irAHoja(hojaActual - 1));
+  document.getElementById('hojaNext').addEventListener('click', () => irAHoja(hojaActual + 1));
+  libro.addEventListener('scroll', () => { if (libro.scrollLeft !== 0) libro.scrollLeft = 0; });
+
+  // Arrastre con el dedo / mouse
+  let arrastrando = false, inicioX = 0, deltaX = 0;
+  libro.addEventListener('pointerdown', e => {
+    arrastrando = true; inicioX = e.clientX; deltaX = 0;
+    pista.style.transition = 'none';
+  });
+  libro.addEventListener('pointermove', e => {
+    if (!arrastrando) return;
+    deltaX = e.clientX - inicioX;
+    // Solo tomar el gesto si es claramente horizontal
+    if (Math.abs(deltaX) > 12) {
+      const pct = (deltaX / libro.offsetWidth) * 50;
+      pista.style.transform = `translateX(${-hojaActual * 50 + pct}%)`;
+    }
+  });
+  const soltar = () => {
+    if (!arrastrando) return;
+    arrastrando = false;
+    if (deltaX < -55) irAHoja(hojaActual + 1);
+    else if (deltaX > 55) irAHoja(hojaActual - 1);
+    else irAHoja(hojaActual);
+  };
+  libro.addEventListener('pointerup', soltar);
+  libro.addEventListener('pointercancel', soltar);
+  libro.addEventListener('pointerleave', soltar);
+}
+
+// ===== GALERÍA DE FOTOS — crossfade con zoom suave =====
+const FOTOS = [
+  { src: '/cartas/fotos/f4.jpg', cap: 'nosotros 💕' },
+  { src: '/cartas/fotos/f1.jpg', cap: 'tú y la tortuga 🐢' },
+  { src: '/cartas/fotos/f3.jpg', cap: 'mirando los peces 🐟' },
+  { src: '/cartas/fotos/f5.jpg', cap: 'comimos rico 🍝' },
+  { src: '/cartas/fotos/f2.jpg', cap: 'tú, hermosa como siempre 🤍' },
+];
+let fotoActual = 0, galeriaTimer = null;
+
+function mostrarFoto(n) {
+  fotoActual = (n + FOTOS.length) % FOTOS.length;
+  document.querySelectorAll('.galeria-fotos img').forEach((img, i) =>
+    img.classList.toggle('activa', i === fotoActual));
+  document.querySelectorAll('.gdot').forEach((d, i) =>
+    d.classList.toggle('activo', i === fotoActual));
+  document.getElementById('galeriaCap').textContent = FOTOS[fotoActual].cap;
+}
+
+function crearGaleria() {
+  const cont = document.getElementById('galeriaFotos');
+  if (!cont || cont.childElementCount > 0) return;
+  const dots = document.getElementById('galeriaDots');
+  FOTOS.forEach((f, i) => {
+    const img = document.createElement('img');
+    img.src = f.src;
+    img.alt = f.cap;
+    cont.appendChild(img);
+    const d = document.createElement('span');
+    d.className = 'gdot';
+    d.addEventListener('click', () => { mostrarFoto(i); reiniciarGaleria(); });
+    dots.appendChild(d);
+  });
+  cont.addEventListener('click', () => { mostrarFoto(fotoActual + 1); reiniciarGaleria(); });
+  mostrarFoto(0);
+  reiniciarGaleria();
+}
+
+function reiniciarGaleria() {
+  clearInterval(galeriaTimer);
+  galeriaTimer = setInterval(() => mostrarFoto(fotoActual + 1), 4200);
+}
+
 // ===== ABRIR / CERRAR CARTAS =====
 document.querySelectorAll('.carta-toggle').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -153,7 +244,7 @@ document.querySelectorAll('.carta-toggle').forEach(btn => {
     const abierta = carta.classList.toggle('abierta');
     if (abierta) {
       if (carta.id === 'carta1') crearRamo();
-      if (carta.id === 'carta2') florecer();
+      if (carta.id === 'carta2') { florecer(); crearGaleria(); }
       setTimeout(() => carta.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
     }
   });
