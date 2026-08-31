@@ -65,13 +65,95 @@ function crearRamo() {
   for (let i = 0; i < TOTAL; i++) ramo.appendChild(crearTulipan(i, TOTAL));
 }
 
+// ===== ROSA DE NEÓN — se dibuja trazo a trazo =====
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const ROSA_CX = 150, ROSA_CY = 118;
+
+function el(nombre, attrs) {
+  const e = document.createElementNS(SVG_NS, nombre);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+function crearRosa() {
+  const svg = document.getElementById('rosaSvg');
+  if (!svg || svg.childElementCount > 0) return;
+
+  let delay = 0;
+  const trazo = (e, dur) => {
+    e.setAttribute('pathLength', '1');
+    e.style.setProperty('--d', delay.toFixed(2) + 's');
+    e.style.setProperty('--dur', dur + 's');
+    svg.appendChild(e);
+  };
+
+  // Tallo y hojas primero
+  trazo(el('path', { d: 'M150 172 C 142 240, 160 300, 150 385', class: 'rosa-tallo' }), 1.1);
+  delay += 0.7;
+  trazo(el('path', { d: 'M148 292 C 118 286, 98 264, 92 240 C 120 246, 140 266, 148 292 Z', class: 'rosa-hoja' }), 0.8);
+  delay += 0.35;
+  trazo(el('path', { d: 'M152 330 C 182 322, 200 298, 204 274 C 178 282, 160 304, 152 330 Z', class: 'rosa-hoja' }), 0.8);
+  delay += 0.55;
+
+  // Espiral central del capullo
+  trazo(el('path', {
+    d: `M${ROSA_CX} ${ROSA_CY} c 7 -5, 13 2, 5 8 c -10 6, -19 -5, -7 -14 c 15 -10, 28 6, 14 20 c -17 14, -37 -8, -18 -26`,
+    class: 'rosa-petalo rosa-p1'
+  }), 0.9);
+  delay += 0.5;
+
+  // Anillos de pétalos: elipses giradas alrededor del centro
+  const anillos = [
+    { n: 6,  rx: 16, ry: 10, sep: 4,  cls: 'rosa-p1' },
+    { n: 7,  rx: 26, ry: 15, sep: 7,  cls: 'rosa-p2' },
+    { n: 8,  rx: 36, ry: 20, sep: 10, cls: 'rosa-p3' },
+    { n: 8,  rx: 46, ry: 26, sep: 12, cls: 'rosa-p2' },
+  ];
+  for (const a of anillos) {
+    for (let i = 0; i < a.n; i++) {
+      const ang = (360 / a.n) * i + a.rx * 3; // desfase entre anillos
+      const rad = ang * Math.PI / 180;
+      const cx = ROSA_CX + Math.cos(rad) * a.sep;
+      const cy = ROSA_CY + Math.sin(rad) * a.sep * 0.8;
+      trazo(el('ellipse', { cx, cy, rx: a.rx, ry: a.ry, transform: `rotate(${ang} ${cx} ${cy})`, class: 'rosa-petalo ' + a.cls }), 0.75);
+      delay += 0.14;
+    }
+  }
+}
+
+function crearEstrellas() {
+  const canvas = document.getElementById('rosaCanvas');
+  if (!canvas || canvas.querySelector('.estrella')) return;
+  for (let i = 0; i < 26; i++) {
+    const s = document.createElement('span');
+    s.className = 'estrella';
+    s.style.left = (3 + ((i * 37) % 94)) + '%';
+    s.style.top = (3 + ((i * 53) % 92)) + '%';
+    s.style.animationDelay = ((i * 0.37) % 3).toFixed(2) + 's';
+    canvas.appendChild(s);
+  }
+}
+
+function florecer() {
+  const canvas = document.getElementById('rosaCanvas');
+  crearRosa();
+  crearEstrellas();
+  canvas.classList.remove('florecer');
+  void canvas.offsetWidth; // reiniciar animaciones
+  canvas.classList.add('florecer');
+}
+
+const btnFlorecer = document.getElementById('btnFlorecer');
+if (btnFlorecer) btnFlorecer.addEventListener('click', florecer);
+
 // ===== ABRIR / CERRAR CARTAS =====
 document.querySelectorAll('.carta-toggle').forEach(btn => {
   btn.addEventListener('click', () => {
     const carta = btn.closest('.carta');
     const abierta = carta.classList.toggle('abierta');
     if (abierta) {
-      crearRamo();
+      if (carta.id === 'carta1') crearRamo();
+      if (carta.id === 'carta2') florecer();
       setTimeout(() => carta.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
     }
   });

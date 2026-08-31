@@ -6,7 +6,7 @@
   <title>Cartas para ti 💌</title>
   <meta name="robots" content="noindex" />
   <meta name="theme-color" content="#12080d" />
-  <link rel="stylesheet" href="/cartas/cartas.css?v=2" />
+  <link rel="stylesheet" href="/cartas/cartas.css?v=3" />
 </head>
 <body>
 
@@ -38,6 +38,32 @@
     </header>
 
     <section class="cartas-lista">
+      <article class="carta" id="carta2">
+        <button class="carta-toggle" type="button">
+          <span class="carta-num">Carta N.º 2 · 30 de agosto de 2026</span>
+          <h2>Una flor que no se marchita 🌹</h2>
+          <span class="carta-abrir">tocar para abrir</span>
+        </button>
+
+        <div class="carta-contenido">
+          <div id="rosaCanvas" class="rosa-canvas">
+            <svg id="rosaSvg" viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+          </div>
+          <button id="btnFlorecer" class="btn-florecer" type="button">🌹 verla florecer de nuevo</button>
+
+          <div class="carta-texto">
+            <p>Noe:</p>
+            <p>Vi una flor hecha con código y pensé al tiro en ti. Así que
+            aprendí a dibujarla, trazo a trazo, para dejártela aquí.</p>
+            <p>Mírala florecer. Puede hacerlo todas las veces que quieras:
+            las flores de verdad se marchitan, pero esta es distinta — cada
+            vez que la abras va a volver a nacer para ti.</p>
+            <p>Igual que yo, que vuelvo a elegirte todos los días.</p>
+            <p class="firma">Te amo.<br />— Tu novio 💕</p>
+          </div>
+        </div>
+      </article>
+
       <article class="carta" id="carta1">
         <button class="carta-toggle" type="button">
           <span class="carta-num">Carta N.º 1 · 24 de agosto de 2026</span>
@@ -88,6 +114,6 @@
   <noscript>
     <style>#sobreOverlay { display: none; } main { visibility: visible; opacity: 1; }</style>
   </noscript>
-  <script src="/cartas/cartas.js?v=1"></script>
+  <script src="/cartas/cartas.js?v=2"></script>
 </body>
 </html>

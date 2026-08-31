@@ -170,6 +170,76 @@ body.abierto .carta { animation: aparecer .7s ease .3s both; }
   color: #fff0f5; font-size: .95rem;
 }
 
+/* ===== ROSA DE NEÓN (carta 2) ===== */
+.rosa-canvas {
+  position: relative;
+  margin: 0 1.2rem;
+  height: 380px;
+  border-radius: 12px;
+  background: radial-gradient(ellipse at 50% 28%, #2a0f1e 0%, #170a12 60%, #10060c 100%);
+  overflow: hidden;
+}
+.rosa-canvas svg { width: 100%; height: 100%; display: block; position: relative; z-index: 1; }
+
+.rosa-canvas .rosa-tallo,
+.rosa-canvas .rosa-hoja,
+.rosa-canvas .rosa-petalo {
+  fill: none;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.rosa-tallo { stroke: #2ea86b; stroke-width: 3.5; }
+.rosa-hoja  { stroke: #35c07c; stroke-width: 2; }
+.rosa-p1 { stroke: #ff2f92; stroke-width: 2.4; }
+.rosa-p2 { stroke: #ff6db4; stroke-width: 2; }
+.rosa-p3 { stroke: #ffa3d0; stroke-width: 1.7; }
+
+.rosa-canvas.florecer .rosa-tallo,
+.rosa-canvas.florecer .rosa-hoja,
+.rosa-canvas.florecer .rosa-petalo {
+  animation: trazar var(--dur, .8s) ease var(--d, 0s) forwards;
+}
+.rosa-canvas.florecer svg {
+  filter: drop-shadow(0 0 5px rgba(255, 47, 146, .65)) drop-shadow(0 0 16px rgba(255, 47, 146, .3));
+  animation: brilloRosa 3.2s ease-in-out 5.5s infinite alternate,
+             mecerRosa 4.5s ease-in-out 5.5s infinite alternate;
+  transform-origin: 50% 95%;
+}
+
+.estrella {
+  position: absolute;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: #ffd9ec;
+  opacity: 0;
+  z-index: 0;
+}
+.rosa-canvas.florecer .estrella { animation: titilar 3s ease-in-out infinite; }
+
+.btn-florecer {
+  display: block;
+  margin: .9rem auto 1.2rem;
+  background: none;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  color: var(--rosa);
+  font-family: 'Courier New', monospace;
+  font-size: .85rem;
+  padding: .55rem 1.2rem;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.btn-florecer:hover { border-color: var(--rosa); background: rgba(255, 109, 157, .08); }
+
+@keyframes trazar { to { stroke-dashoffset: 0; } }
+@keyframes brilloRosa {
+  from { filter: drop-shadow(0 0 5px rgba(255, 47, 146, .65)) drop-shadow(0 0 16px rgba(255, 47, 146, .3)); }
+  to   { filter: drop-shadow(0 0 8px rgba(255, 47, 146, .9))  drop-shadow(0 0 26px rgba(255, 47, 146, .45)); }
+}
+@keyframes mecerRosa { from { transform: rotate(-1.1deg); } to { transform: rotate(1.1deg); } }
+@keyframes titilar { 0%, 100% { opacity: 0; } 50% { opacity: .85; } }
+
 /* ===== TEXTO DE LA CARTA ===== */
 .carta-texto {
   background: var(--papel);
@@ -215,4 +285,8 @@ footer a:hover { color: var(--rosa); }
 @media (prefers-reduced-motion: reduce) {
   .hero .emoji, .sobre-sello, .sobre-hint, .carta.abierta .tulipan { animation: none; }
   .carta.abierta .tulipan svg { animation: none; transform: scaleY(1); }
+  .rosa-canvas.florecer .rosa-tallo,
+  .rosa-canvas.florecer .rosa-hoja,
+  .rosa-canvas.florecer .rosa-petalo { animation: none; stroke-dashoffset: 0; }
+  .rosa-canvas.florecer svg { animation: none; }
 }
